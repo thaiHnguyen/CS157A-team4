@@ -13,7 +13,7 @@
         // Same from homework 1, but using fittrack as database name
         String db = "fittrack";
         String user = "root";
-        String password = "lalilulelo.1403";   // your MySQL workbench password
+        String password = "CHANGE_ME";   // your MySQL workbench password
 
         Connection con = null;
         try {
@@ -69,9 +69,6 @@
             rs.close();
     %>
     </table>
-    <p>Spots left is not stored. It is capacity minus the SessionBooking rows
-       with status BOOKED, counted when the page loads.</p>
-
     <h2>Membership tiers</h2>
     <table border="1" cellpadding="5">
         <tr>
