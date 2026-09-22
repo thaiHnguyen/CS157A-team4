@@ -1,0 +1,216 @@
+/* FitTrack - CS157A Team 4 */
+
+:root {
+    --ink:    #16211c;
+    --paper:  #f2f3f0;
+    --card:   #ffffff;
+    --muted:  #6c7a72;
+    --rule:   #d6dbd5;
+    --green:  #1b5e4b;
+    --green-d:#14503f;
+    --full:   #9c4026;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+}
+
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+
+/* top bar */
+
+.topbar {
+    background: var(--card);
+    border-bottom: 1px solid var(--rule);
+}
+
+.topbar .wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+}
+
+.brand {
+    font-size: 21px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.topbar nav { display: flex; align-items: center; gap: 18px; font-size: 15px; }
+.topbar nav a { color: var(--muted); text-decoration: none; }
+.topbar nav a:hover { color: var(--ink); }
+
+.who { color: var(--muted); font-size: 15px; }
+.who strong { color: var(--ink); font-weight: 600; }
+
+/* buttons */
+
+.btn, .btn-quiet {
+    display: inline-block;
+    padding: 9px 18px;
+    border-radius: 3px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.btn {
+    background: var(--green);
+    color: #f7f8f6;
+    border: 1px solid var(--green);
+}
+
+.btn:hover { background: var(--green-d); }
+
+.btn-quiet {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--rule);
+}
+
+/* background-hero */
+
+.hero {
+    position: relative;
+    background-color: var(--ink);
+    background-image: url("../assets/img/fittrack_background.jpg");
+    background-size: cover;
+    background-position: center;
+    color: #ffffff;
+    padding: 96px 0 104px;
+}
+
+.hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(12, 26, 21, 0.55);
+}
+
+.hero .wrap { position: relative; z-index: 1; }
+
+.hero h1 {
+    margin: 0;
+    max-width: 18ch;
+    font-size: 46px;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+}
+
+.hero p {
+    margin: 16px 0 28px;
+    max-width: 54ch;
+    font-size: 18px;
+    color: #dfe5e1;
+}
+
+.hero .btn-quiet { color: #ffffff; border-color: rgba(255,255,255,0.5); }
+
+/* ---------- feature cards ---------- */
+
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    padding: 56px 0;
+}
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 22px;
+}
+
+.card h3 { margin: 0 0 8px; font-size: 17px; }
+.card p  { margin: 0; color: var(--muted); font-size: 15px; }
+
+/* ---------- login form ---------- */
+
+.panel {
+    max-width: 420px;
+    margin: 64px auto;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 28px;
+}
+
+.panel h1 { margin: 0 0 4px; font-size: 24px; }
+.panel .sub { margin: 0 0 22px; color: var(--muted); font-size: 15px; }
+
+label { display: block; margin: 0 0 6px; font-size: 14px; font-weight: 600; }
+
+input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 16px;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    font-size: 15px;
+    font-family: inherit;
+}
+
+input:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+
+.error {
+    margin: 0 0 16px;
+    padding: 10px 12px;
+    border-left: 3px solid var(--full);
+    background: #f7eae6;
+    color: var(--full);
+    font-size: 14px;
+}
+
+.hint { margin-top: 18px; color: var(--muted); font-size: 13px; }
+
+/* ---------- content sections ---------- */
+
+main h2 { margin: 40px 0 6px; font-size: 22px; letter-spacing: -0.01em; }
+main .note { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    font-size: 15px;
+}
+
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--rule); }
+th { background: #eceee9; font-weight: 600; font-size: 14px; }
+tr:last-child td { border-bottom: 0; }
+
+.full { color: var(--full); font-weight: 600; }
+.left { font-weight: 600; }
+
+/* ---------- footer ---------- */
+
+footer {
+    margin-top: 56px;
+    border-top: 1px solid var(--rule);
+    padding: 22px 0 40px;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+footer p { margin: 0 0 4px; }
+
+@media (max-width: 640px) {
+    .hero { padding: 64px 0 72px; }
+    .hero h1 { font-size: 32px; }
+    table { font-size: 14px; }
+    th, td { padding: 8px; }
+}
