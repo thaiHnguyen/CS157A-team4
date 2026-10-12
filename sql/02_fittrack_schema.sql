@@ -7,7 +7,10 @@ DROP DATABASE IF EXISTS fittrack;
 CREATE DATABASE fittrack CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE fittrack;
 
--- Accounts and people
+-- Accounts and people: UserAccount ISA Member | Trainer | Staff
+-- (total, disjoint). Shared attributes live on UserAccount. Each subclass
+-- inherits UserId as its key: UserId is both its PRIMARY KEY and a FOREIGN
+-- KEY to UserAccount (the 1:1 ISA link).
 CREATE TABLE UserAccount (
     UserId        INT AUTO_INCREMENT PRIMARY KEY,
     Email         VARCHAR(120) NOT NULL,
@@ -21,10 +24,8 @@ CREATE TABLE UserAccount (
 );
 
 CREATE TABLE Member (
-    MemberId              INT AUTO_INCREMENT PRIMARY KEY,
-    UserId                INT NOT NULL,
+    UserId                INT PRIMARY KEY,
     EmergencyPhoneNumber  VARCHAR(20),
-    CONSTRAINT uq_member_user UNIQUE (UserId),
     CONSTRAINT fk_member_user FOREIGN KEY (UserId)
         REFERENCES UserAccount(UserId) ON DELETE CASCADE
 );
@@ -32,26 +33,23 @@ CREATE TABLE Member (
 -- Staff manage memberships and trainers. Created before Trainer and
 -- Membership because both reference it.
 CREATE TABLE Staff (
-    StaffId       INT AUTO_INCREMENT PRIMARY KEY,
-    UserId        INT NOT NULL,
+    UserId        INT PRIMARY KEY,
     JobTitle      VARCHAR(80) NOT NULL,
-    CONSTRAINT uq_staff_user UNIQUE (UserId),
     CONSTRAINT fk_staff_user FOREIGN KEY (UserId)
         REFERENCES UserAccount(UserId) ON DELETE CASCADE
 );
 
 -- Added by (Staff, exactly one): every trainer was added by one staff member.
+-- AddedBy holds that staff member's UserId.
 CREATE TABLE Trainer (
-    TrainerId     INT AUTO_INCREMENT PRIMARY KEY,
-    UserId        INT NOT NULL,
+    UserId        INT PRIMARY KEY,
     Bio           VARCHAR(500),
     HireDate      DATE,
     AddedBy       INT NOT NULL,
-    CONSTRAINT uq_trainer_user UNIQUE (UserId),
     CONSTRAINT fk_trainer_user FOREIGN KEY (UserId)
         REFERENCES UserAccount(UserId) ON DELETE CASCADE,
     CONSTRAINT fk_trainer_addedby FOREIGN KEY (AddedBy)
-        REFERENCES Staff(StaffId)
+        REFERENCES Staff(UserId)
 );
 
 -- Memberships and payments
@@ -68,6 +66,7 @@ CREATE TABLE MembershipTier (
 -- Holds (Member, exactly one), Of tier (MembershipTier, exactly one), and
 -- Updated by (Staff, at most one). UpdatedBy is NULL when no staff member
 -- has changed the membership, e.g. a member bought or renewed it online.
+-- MemberId holds the member's UserId; UpdatedBy holds a staff UserId.
 CREATE TABLE Membership (
     MembershipId  INT AUTO_INCREMENT PRIMARY KEY,
     MemberId      INT NOT NULL,
@@ -77,11 +76,11 @@ CREATE TABLE Membership (
     Status        ENUM('ACTIVE','EXPIRED','CANCELLED') NOT NULL DEFAULT 'ACTIVE',
     UpdatedBy     INT NULL,
     CONSTRAINT fk_membership_member FOREIGN KEY (MemberId)
-        REFERENCES Member(MemberId) ON DELETE CASCADE,
+        REFERENCES Member(UserId) ON DELETE CASCADE,
     CONSTRAINT fk_membership_tier FOREIGN KEY (TierId)
         REFERENCES MembershipTier(TierId),
     CONSTRAINT fk_membership_updatedby FOREIGN KEY (UpdatedBy)
-        REFERENCES Staff(StaffId) ON DELETE SET NULL,
+        REFERENCES Staff(UserId) ON DELETE SET NULL,
     CONSTRAINT ck_membership_dates CHECK (EndDate > StartDate)
 );
 
@@ -110,6 +109,7 @@ CREATE TABLE ClassType (
 
 -- One scheduled occurrence that members book.
 -- Of type (ClassType, exactly one) and Leads (Trainer, exactly one)
+-- TrainerId holds the trainer's UserId.
 CREATE TABLE `Class` (
     ClassId       INT AUTO_INCREMENT PRIMARY KEY,
     ClassTypeId   INT NOT NULL,
@@ -120,13 +120,14 @@ CREATE TABLE `Class` (
     CONSTRAINT fk_class_type FOREIGN KEY (ClassTypeId)
         REFERENCES ClassType(ClassTypeId),
     CONSTRAINT fk_class_trainer FOREIGN KEY (TrainerId)
-        REFERENCES Trainer(TrainerId),
+        REFERENCES Trainer(UserId),
     -- a trainer cannot lead two classes at the same time
     CONSTRAINT uq_trainer_slot UNIQUE (TrainerId, StartTime),
     CONSTRAINT ck_class_capacity CHECK (Capacity > 0)
 );
 
 -- Makes (Member, exactly one) and Reserves (Class, exactly one)
+-- MemberId holds the member's UserId.
 -- Capacity rule (BOOKED rows <= Class.Capacity) is checked by the app
 -- before INSERT, because a CHECK cannot count rows in another table.
 CREATE TABLE Booking (
@@ -136,7 +137,7 @@ CREATE TABLE Booking (
     BookedAt      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Status        ENUM('BOOKED','CANCELLED') NOT NULL DEFAULT 'BOOKED',
     CONSTRAINT fk_booking_member FOREIGN KEY (MemberId)
-        REFERENCES Member(MemberId) ON DELETE CASCADE,
+        REFERENCES Member(UserId) ON DELETE CASCADE,
     CONSTRAINT fk_booking_class FOREIGN KEY (ClassId)
         REFERENCES `Class`(ClassId) ON DELETE CASCADE,
     -- a member cannot book the same class twice
@@ -151,7 +152,7 @@ CREATE TABLE Attendance (
     ClassId       INT NULL,
     CheckInTime   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_attendance_member FOREIGN KEY (MemberId)
-        REFERENCES Member(MemberId) ON DELETE CASCADE,
+        REFERENCES Member(UserId) ON DELETE CASCADE,
     CONSTRAINT fk_attendance_class FOREIGN KEY (ClassId)
         REFERENCES `Class`(ClassId) ON DELETE SET NULL
 );

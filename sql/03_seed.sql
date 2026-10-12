@@ -25,6 +25,8 @@ TRUNCATE TABLE UserAccount;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Accounts: UserId 1-10 are trainers, 11-20 are members, 21-30 are staff.
+-- PasswordHash holds the plain demo password until hashing is added,
+-- because login.jsp currently compares it directly. Every account: demo123
 INSERT INTO UserAccount (UserId, Email, PasswordHash, Role, Name, Phone, DateOfBirth) VALUES
     ( 1, 'john.doe@fittrack.test',         'demo123', 'TRAINER', 'John Doe',         '408-555-0101', '1988-02-14'),
     ( 2, 'jane.doe@fittrack.test',         'demo123', 'TRAINER', 'Jane Doe',         '408-555-0102', '1990-09-03'),
@@ -57,46 +59,46 @@ INSERT INTO UserAccount (UserId, Email, PasswordHash, Role, Name, Phone, DateOfB
     (29, 'chloe.martin@fittrack.test',     'demo123', 'STAFF',   'Chloe Martin',     '408-555-0209', '1998-09-13'),
     (30, 'ryan.patel@fittrack.test',       'demo123', 'STAFF',   'Ryan Patel',       '408-555-0210', '1994-02-08');
 
--- Staff: StaffId n belongs to UserId n + 20. Inserted before Trainer because
--- Trainer.AddedBy references Staff.
-INSERT INTO Staff (StaffId, UserId, JobTitle) VALUES
-    ( 1, 21, 'General Manager'),
-    ( 2, 22, 'Fitness Director'),
-    ( 3, 23, 'Membership Manager'),
-    ( 4, 24, 'Front Desk Associate'),
-    ( 5, 25, 'Front Desk Associate'),
-    ( 6, 26, 'Corporate Accounts Coordinator'),
-    ( 7, 27, 'Billing Specialist'),
-    ( 8, 28, 'Facilities Manager'),
-    ( 9, 29, 'Member Services Lead'),
-    (10, 30, 'Operations Coordinator');
+-- Staff: UserId 21-30. Inserted before Trainer because Trainer.AddedBy
+-- references Staff.
+INSERT INTO Staff (UserId, JobTitle) VALUES
+    (21, 'General Manager'),
+    (22, 'Fitness Director'),
+    (23, 'Membership Manager'),
+    (24, 'Front Desk Associate'),
+    (25, 'Front Desk Associate'),
+    (26, 'Corporate Accounts Coordinator'),
+    (27, 'Billing Specialist'),
+    (28, 'Facilities Manager'),
+    (29, 'Member Services Lead'),
+    (30, 'Operations Coordinator');
 
--- Trainers: TrainerId n belongs to UserId n. AddedBy is the staff member
--- who added the trainer: the General Manager (1) or Fitness Director (2).
-INSERT INTO Trainer (TrainerId, UserId, Bio, HireDate, AddedBy) VALUES
-    ( 1,  1, 'Strength and conditioning, 8 years.',              '2021-03-01', 1),
-    ( 2,  2, 'Cycling and endurance coaching.',                  '2022-07-15', 2),
-    ( 3,  3, 'Functional training and sports performance.',      '2023-01-09', 2),
-    ( 4,  4, 'Vinyasa yoga and mobility, RYT-500 certified.',    '2020-09-14', 1),
-    ( 5,  5, 'Boxing technique and conditioning, former amateur.','2019-05-20', 1),
-    ( 6,  6, 'Pilates and core rehabilitation.',                 '2022-02-01', 2),
-    ( 7,  7, 'Kettlebell and strongman training.',               '2021-11-08', 1),
-    ( 8,  8, 'Dance fitness and Zumba instructor.',              '2023-06-12', 2),
-    ( 9,  9, 'Rowing and aerobic endurance.',                    '2024-01-15', 2),
-    (10, 10, 'HIIT and outdoor bootcamp coach.',                 '2024-08-05', 2);
+-- Trainers: UserId 1-10. AddedBy is the UserId of the staff member who
+-- added the trainer: the General Manager (21) or Fitness Director (22).
+INSERT INTO Trainer (UserId, Bio, HireDate, AddedBy) VALUES
+    ( 1, 'Strength and conditioning, 8 years.',              '2021-03-01', 21),
+    ( 2, 'Cycling and endurance coaching.',                  '2022-07-15', 22),
+    ( 3, 'Functional training and sports performance.',      '2023-01-09', 22),
+    ( 4, 'Vinyasa yoga and mobility, RYT-500 certified.',    '2020-09-14', 21),
+    ( 5, 'Boxing technique and conditioning, former amateur.','2019-05-20', 21),
+    ( 6, 'Pilates and core rehabilitation.',                 '2022-02-01', 22),
+    ( 7, 'Kettlebell and strongman training.',               '2021-11-08', 21),
+    ( 8, 'Dance fitness and Zumba instructor.',              '2023-06-12', 22),
+    ( 9, 'Rowing and aerobic endurance.',                    '2024-01-15', 22),
+    (10, 'HIIT and outdoor bootcamp coach.',                 '2024-08-05', 22);
 
--- Members: MemberId n belongs to UserId n + 10.
-INSERT INTO Member (MemberId, UserId, EmergencyPhoneNumber) VALUES
-    ( 1, 11, '408-555-0156'),
-    ( 2, 12, '408-555-0178'),
-    ( 3, 13, '669-555-0111'),
-    ( 4, 14, '408-555-0143'),
-    ( 5, 15, '650-555-0124'),
-    ( 6, 16, '408-555-0169'),
-    ( 7, 17, '669-555-0135'),
-    ( 8, 18, '650-555-0190'),
-    ( 9, 19, '408-555-0192'),
-    (10, 20, '669-555-0147');
+-- Members: UserId 11-20.
+INSERT INTO Member (UserId, EmergencyPhoneNumber) VALUES
+    (11, '408-555-0156'),
+    (12, '408-555-0178'),
+    (13, '669-555-0111'),
+    (14, '408-555-0143'),
+    (15, '650-555-0124'),
+    (16, '408-555-0169'),
+    (17, '669-555-0135'),
+    (18, '650-555-0190'),
+    (19, '408-555-0192'),
+    (20, '669-555-0147');
 
 -- Membership tiers. Fee is the monthly fee.
 INSERT INTO MembershipTier (TierId, TierName, TierLevel, Fee, Description) VALUES
@@ -111,31 +113,33 @@ INSERT INTO MembershipTier (TierId, TierName, TierLevel, Fee, Description) VALUE
     ( 9, 'Platinum',      5, 109.00, 'Unlimited classes plus 2 personal training sessions a month.'),
     (10, 'Elite Athlete', 6, 149.00, 'Platinum plus recovery room and nutrition coaching.');
 
-
+-- ---------------------------------------------------------------------
 -- Memberships. Dates are relative to today so statuses stay correct.
--- Cara (3) renewed after her Basic expired; Sofia (8) cancelled Gold and
--- moved to Basic; Elena (6) has only an expired membership, so she has
+-- MemberId and UpdatedBy are UserIds (members 11-20, staff 21-30).
+-- Cara (13) renewed after her Basic expired; Sofia (18) cancelled Gold and
+-- moved to Basic; Elena (16) has only an expired membership, so she has
 -- no upcoming bookings.
 -- UpdatedBy: the staff member who last changed the membership. NULL means
 -- the member bought or renewed it online with no staff involvement.
---   Membership Manager (3) processed Sofia's cancellation and tier change;
---   front desk (4, 5) verified Priya's student ID and Omar's senior rate;
---   Corporate Accounts (6) set up Linh's employer-billed plan;
---   Member Services (9) updated Cara's renewal.
+--   Membership Manager (23) processed Sofia's cancellation and tier change;
+--   front desk (24, 25) verified Priya's student ID and Omar's senior rate;
+--   Corporate Accounts (26) set up Linh's employer-billed plan;
+--   Member Services (29) updated Cara's renewal.
+-- ---------------------------------------------------------------------
 
 INSERT INTO Membership (MembershipId, MemberId, TierId, StartDate, EndDate, Status, UpdatedBy) VALUES
-    ( 1,  1,  5, DATE_SUB(CURDATE(), INTERVAL  40 DAY), DATE_ADD(CURDATE(), INTERVAL 325 DAY), 'ACTIVE',    NULL),
-    ( 2,  2,  7, DATE_SUB(CURDATE(), INTERVAL  10 DAY), DATE_ADD(CURDATE(), INTERVAL 355 DAY), 'ACTIVE',    NULL),
-    ( 3,  3,  4, DATE_SUB(CURDATE(), INTERVAL 400 DAY), DATE_SUB(CURDATE(), INTERVAL  35 DAY), 'EXPIRED',   NULL),
-    ( 4,  4,  2, DATE_SUB(CURDATE(), INTERVAL  60 DAY), DATE_ADD(CURDATE(), INTERVAL 120 DAY), 'ACTIVE',    4),
-    ( 5,  5,  9, DATE_SUB(CURDATE(), INTERVAL  20 DAY), DATE_ADD(CURDATE(), INTERVAL 345 DAY), 'ACTIVE',    NULL),
-    ( 6,  6,  5, DATE_SUB(CURDATE(), INTERVAL 300 DAY), DATE_SUB(CURDATE(), INTERVAL   5 DAY), 'EXPIRED',   NULL),
-    ( 7,  7,  1, DATE_SUB(CURDATE(), INTERVAL  90 DAY), DATE_ADD(CURDATE(), INTERVAL  90 DAY), 'ACTIVE',    NULL),
-    ( 8,  8,  7, DATE_SUB(CURDATE(), INTERVAL 200 DAY), DATE_ADD(CURDATE(), INTERVAL 165 DAY), 'CANCELLED', 3),
-    ( 9,  9,  3, DATE_SUB(CURDATE(), INTERVAL  15 DAY), DATE_ADD(CURDATE(), INTERVAL 350 DAY), 'ACTIVE',    5),
-    (10, 10,  6, DATE_SUB(CURDATE(), INTERVAL  45 DAY), DATE_ADD(CURDATE(), INTERVAL 320 DAY), 'ACTIVE',    6),
-    (11,  3,  5, DATE_SUB(CURDATE(), INTERVAL  30 DAY), DATE_ADD(CURDATE(), INTERVAL 335 DAY), 'ACTIVE',    9),
-    (12,  8,  4, DATE_SUB(CURDATE(), INTERVAL  30 DAY), DATE_ADD(CURDATE(), INTERVAL  60 DAY), 'ACTIVE',    3);
+    ( 1, 11,  5, DATE_SUB(CURDATE(), INTERVAL  40 DAY), DATE_ADD(CURDATE(), INTERVAL 325 DAY), 'ACTIVE', NULL),
+    ( 2, 12,  7, DATE_SUB(CURDATE(), INTERVAL  10 DAY), DATE_ADD(CURDATE(), INTERVAL 355 DAY), 'ACTIVE', NULL),
+    ( 3, 13,  4, DATE_SUB(CURDATE(), INTERVAL 400 DAY), DATE_SUB(CURDATE(), INTERVAL  35 DAY), 'EXPIRED', NULL),
+    ( 4, 14,  2, DATE_SUB(CURDATE(), INTERVAL  60 DAY), DATE_ADD(CURDATE(), INTERVAL 120 DAY), 'ACTIVE', 24),
+    ( 5, 15,  9, DATE_SUB(CURDATE(), INTERVAL  20 DAY), DATE_ADD(CURDATE(), INTERVAL 345 DAY), 'ACTIVE', NULL),
+    ( 6, 16,  5, DATE_SUB(CURDATE(), INTERVAL 300 DAY), DATE_SUB(CURDATE(), INTERVAL   5 DAY), 'EXPIRED', NULL),
+    ( 7, 17,  1, DATE_SUB(CURDATE(), INTERVAL  90 DAY), DATE_ADD(CURDATE(), INTERVAL  90 DAY), 'ACTIVE', NULL),
+    ( 8, 18,  7, DATE_SUB(CURDATE(), INTERVAL 200 DAY), DATE_ADD(CURDATE(), INTERVAL 165 DAY), 'CANCELLED', 23),
+    ( 9, 19,  3, DATE_SUB(CURDATE(), INTERVAL  15 DAY), DATE_ADD(CURDATE(), INTERVAL 350 DAY), 'ACTIVE', 25),
+    (10, 20,  6, DATE_SUB(CURDATE(), INTERVAL  45 DAY), DATE_ADD(CURDATE(), INTERVAL 320 DAY), 'ACTIVE', 26),
+    (11, 13,  5, DATE_SUB(CURDATE(), INTERVAL  30 DAY), DATE_ADD(CURDATE(), INTERVAL 335 DAY), 'ACTIVE', 29),
+    (12, 18,  4, DATE_SUB(CURDATE(), INTERVAL  30 DAY), DATE_ADD(CURDATE(), INTERVAL  60 DAY), 'ACTIVE', 23);
 
 -- Payments (weak entity). One row per monthly charge; PaymentNo restarts
 -- at 1 for each membership. Amount matches the tier's Fee.
@@ -194,57 +198,61 @@ INSERT INTO `Class` (ClassId, ClassTypeId, TrainerId, RoomNumber, StartTime, Cap
     (15,  2,  2, 'Cycle',    DATE_ADD(DATE(NOW()), INTERVAL 138 HOUR), 20),
     (16,  1,  1, 'Studio A', DATE_ADD(DATE(NOW()), INTERVAL 150 HOUR), 12);
 
+-- ---------------------------------------------------------------------
 -- Bookings. Only members with an active membership book upcoming classes.
--- Class 5 has one CANCELLED row, which proves spots left ignores it
+-- Class 5 has one CANCELLED row, which proves spots left ignores it.
+-- ---------------------------------------------------------------------
+
 -- Bookings for the past classes, made four days ago
 INSERT INTO Booking (MemberId, ClassId, BookedAt, Status) VALUES
-    ( 1, 1, DATE_SUB(NOW(), INTERVAL 4 DAY), 'BOOKED'),
-    ( 2, 1, DATE_SUB(NOW(), INTERVAL 4 DAY), 'BOOKED'),
-    ( 5, 1, DATE_SUB(NOW(), INTERVAL 4 DAY), 'BOOKED'),
-    ( 3, 2, DATE_SUB(NOW(), INTERVAL 4 DAY), 'BOOKED'),
-    ( 7, 2, DATE_SUB(NOW(), INTERVAL 4 DAY), 'BOOKED'),
-    ( 4, 3, DATE_SUB(NOW(), INTERVAL 4 DAY), 'BOOKED'),
-    ( 9, 3, DATE_SUB(NOW(), INTERVAL 4 DAY), 'BOOKED'),
-    (10, 4, DATE_SUB(NOW(), INTERVAL 4 DAY), 'BOOKED'),
-    ( 1, 4, DATE_SUB(NOW(), INTERVAL 4 DAY), 'BOOKED'),
-    ( 8, 4, DATE_SUB(NOW(), INTERVAL 4 DAY), 'CANCELLED');
+    (11, 1, DATE_SUB(NOW(), INTERVAL 4 DAY), 'BOOKED'),
+    (12, 1, DATE_SUB(NOW(), INTERVAL 4 DAY), 'BOOKED'),
+    (15, 1, DATE_SUB(NOW(), INTERVAL 4 DAY), 'BOOKED'),
+    (13, 2, DATE_SUB(NOW(), INTERVAL 4 DAY), 'BOOKED'),
+    (17, 2, DATE_SUB(NOW(), INTERVAL 4 DAY), 'BOOKED'),
+    (14, 3, DATE_SUB(NOW(), INTERVAL 4 DAY), 'BOOKED'),
+    (19, 3, DATE_SUB(NOW(), INTERVAL 4 DAY), 'BOOKED'),
+    (20, 4, DATE_SUB(NOW(), INTERVAL 4 DAY), 'BOOKED'),
+    (11, 4, DATE_SUB(NOW(), INTERVAL 4 DAY), 'BOOKED'),
+    (18, 4, DATE_SUB(NOW(), INTERVAL 4 DAY), 'CANCELLED');
 
 -- Bookings for upcoming classes, made today
 INSERT INTO Booking (MemberId, ClassId, Status) VALUES
-    ( 1,  5, 'BOOKED'), ( 2,  5, 'BOOKED'), ( 3,  5, 'CANCELLED'),
-    ( 1,  6, 'BOOKED'), ( 3,  6, 'BOOKED'), ( 7,  6, 'BOOKED'),
-    ( 5,  7, 'BOOKED'), (10,  7, 'BOOKED'),
-    ( 2,  8, 'BOOKED'), ( 9,  8, 'BOOKED'),
-    ( 1,  9, 'BOOKED'), ( 2,  9, 'BOOKED'), ( 4,  9, 'BOOKED'),
-    ( 8, 10, 'BOOKED'), ( 4, 10, 'BOOKED'),
-    ( 5, 11, 'BOOKED'), ( 7, 11, 'BOOKED'),
-    (10, 12, 'BOOKED'),
-    ( 3, 13, 'BOOKED'), ( 8, 13, 'BOOKED'), ( 4, 13, 'BOOKED'),
-    ( 9, 14, 'BOOKED'),
-    ( 2, 16, 'BOOKED'), ( 5, 16, 'BOOKED');
+    (11,  5, 'BOOKED'), (12,  5, 'BOOKED'), (13,  5, 'CANCELLED'),
+    (11,  6, 'BOOKED'), (13,  6, 'BOOKED'), (17,  6, 'BOOKED'),
+    (15,  7, 'BOOKED'), (20,  7, 'BOOKED'),
+    (12,  8, 'BOOKED'), (19,  8, 'BOOKED'),
+    (11,  9, 'BOOKED'), (12,  9, 'BOOKED'), (14,  9, 'BOOKED'),
+    (18, 10, 'BOOKED'), (14, 10, 'BOOKED'),
+    (15, 11, 'BOOKED'), (17, 11, 'BOOKED'),
+    (20, 12, 'BOOKED'),
+    (13, 13, 'BOOKED'), (18, 13, 'BOOKED'), (14, 13, 'BOOKED'),
+    (19, 14, 'BOOKED'),
+    (12, 16, 'BOOKED'), (15, 16, 'BOOKED');
 
 -- Attendance
+-- Class check-ins: members who booked a past class and showed up, checked
+-- in 10 minutes before it started. Marcus (15) booked class 1 but no-showed.
 INSERT INTO Attendance (MemberId, ClassId, CheckInTime)
 SELECT b.MemberId, b.ClassId, DATE_SUB(c.StartTime, INTERVAL 10 MINUTE)
     FROM Booking b
     JOIN `Class` c ON c.ClassId = b.ClassId
     WHERE b.Status = 'BOOKED'
-    AND (b.MemberId, b.ClassId) IN ((1,1), (2,1), (3,2), (7,2),
-                                    (4,3), (9,3), (10,4), (1,4))
+    AND (b.MemberId, b.ClassId) IN ((11,1), (12,1), (13,2), (17,2),
+                                    (14,3), (19,3), (20,4), (11,4))
     ORDER BY c.StartTime;
 
 -- Plain gym visits, not tied to a class (ClassId is NULL)
 INSERT INTO Attendance (MemberId, ClassId, CheckInTime) VALUES
-    ( 6, NULL, DATE_SUB(NOW(), INTERVAL 10 DAY)),
-    ( 1, NULL, DATE_SUB(NOW(), INTERVAL  3 DAY)),
-    ( 5, NULL, DATE_SUB(NOW(), INTERVAL  3 DAY)),
-    ( 2, NULL, DATE_SUB(NOW(), INTERVAL  1 DAY)),
-    ( 8, NULL, DATE_SUB(NOW(), INTERVAL  1 DAY)),
-    ( 7, NULL, DATE_SUB(NOW(), INTERVAL 20 HOUR)),
-    (10, NULL, DATE_SUB(NOW(), INTERVAL  8 HOUR)),
-    ( 3, NULL, DATE_SUB(NOW(), INTERVAL  4 HOUR)),
-    ( 9, NULL, DATE_SUB(NOW(), INTERVAL  2 HOUR));
-
+    (16, NULL, DATE_SUB(NOW(), INTERVAL 10 DAY)),
+    (11, NULL, DATE_SUB(NOW(), INTERVAL  3 DAY)),
+    (15, NULL, DATE_SUB(NOW(), INTERVAL  3 DAY)),
+    (12, NULL, DATE_SUB(NOW(), INTERVAL  1 DAY)),
+    (18, NULL, DATE_SUB(NOW(), INTERVAL  1 DAY)),
+    (17, NULL, DATE_SUB(NOW(), INTERVAL 20 HOUR)),
+    (20, NULL, DATE_SUB(NOW(), INTERVAL  8 HOUR)),
+    (13, NULL, DATE_SUB(NOW(), INTERVAL  4 HOUR)),
+    (19, NULL, DATE_SUB(NOW(), INTERVAL  2 HOUR));
 
 -- Check: all eleven tables, each should show 10 or more rows.
 SELECT 'UserAccount' AS TableName, COUNT(*) AS RowsLoaded FROM UserAccount
@@ -271,7 +279,7 @@ SELECT c.StartTime,
                             AND b.Status = 'BOOKED') AS RemainingSpots
     FROM `Class` c
     JOIN ClassType ct ON ct.ClassTypeId = c.ClassTypeId
-    JOIN Trainer t    ON t.TrainerId = c.TrainerId
+    JOIN Trainer t    ON t.UserId = c.TrainerId
     JOIN UserAccount u ON u.UserId = t.UserId
     WHERE c.StartTime >= NOW()
     ORDER BY c.StartTime;
