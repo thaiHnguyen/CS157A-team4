@@ -1,0 +1,32 @@
+<%--
+  topbar.jspf - the navigation bar and flash message shared by every page.
+  Include it right after <body>. Needs the variables from common.jspf.
+--%>
+<%
+    String here = request.getServletPath();
+%>
+    <div class="topbar">
+        <div class="wrap">
+            <a class="brand" href="<%= ctx %>/index.jsp">FitTrack</a>
+            <nav>
+            <% if (userId == null) { %>
+                <a href="<%= ctx %>/login.jsp" class="<%= here.equals("/login.jsp") ? "on" : "" %>">Sign in</a>
+                <a class="btn-quiet" href="<%= ctx %>/register.jsp">Join</a>
+            <% } else { %>
+                <a href="<%= ctx %>/home.jsp"     class="<%= here.equals("/home.jsp") ? "on" : "" %>">Dashboard</a>
+                <a href="<%= ctx %>/schedule.jsp" class="<%= here.equals("/schedule.jsp") ? "on" : "" %>">Schedule</a>
+                <% if (isMember) { %>
+                <a href="<%= ctx %>/membership.jsp" class="<%= here.equals("/membership.jsp") ? "on" : "" %>">Membership</a>
+                <% } %>
+                <a href="<%= ctx %>/profile.jsp"  class="<%= here.equals("/profile.jsp") ? "on" : "" %>">Profile</a>
+                <span class="who"><strong><%= esc(fullName) %></strong> &middot; <%= esc(role == null ? "" : role.toLowerCase()) %></span>
+                <a class="btn-quiet" href="<%= ctx %>/logout.jsp">Log out</a>
+            <% } %>
+            </nav>
+        </div>
+    </div>
+<% if (flashText != null) { %>
+    <div class="wrap">
+        <p class="<%= flashOk ? "success" : "error" %> flash"><%= esc(flashText) %></p>
+    </div>
+<% } %>

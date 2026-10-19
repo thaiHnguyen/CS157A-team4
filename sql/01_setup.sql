@@ -388,10 +388,7 @@ INSERT INTO Booking (MemberId, ClassId, Status) VALUES
     (19, 14, 'BOOKED'),
     (12, 16, 'BOOKED'), (15, 16, 'BOOKED');
 
--- ---------------------------------------------------------------------
 -- Attendance
--- ---------------------------------------------------------------------
-
 -- Class check-ins: members who booked a past class and showed up, checked
 -- in 10 minutes before it started. Marcus (15) booked class 1 but no-showed.
 INSERT INTO Attendance (MemberId, ClassId, CheckInTime)
