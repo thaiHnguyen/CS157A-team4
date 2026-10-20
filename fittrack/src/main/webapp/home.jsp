@@ -1,5 +1,5 @@
 <%--
-    home.jsp -- the dashboard every user lands on after signing in.
+    home.jsp - the dashboard every user lands on after signing in.
     Members see their membership status and upcoming bookings.
     Everyone sees the next few classes with live remaining spots.
 --%>

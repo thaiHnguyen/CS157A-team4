@@ -1,5 +1,5 @@
 <%--
-    index.jsp -- public landing page. No login required, no database access.
+    index.jsp - public landing page. No login required, no database access.
     Tomcat serves this automatically at http://localhost:8080/fittrack/
 --%>
 <%@ include file="/WEB-INF/jspf/common.jspf" %>
@@ -38,13 +38,13 @@
         <div class="features">
             <div class="card">
                 <h3>Members</h3>
-                <p>See what is on this week, book a spot, and view your attendance
+                <p>See what is on this week, book a class, and view your attendance
                     history and membership status.</p>
             </div>
             <div class="card">
                 <h3>Trainers</h3>
-                <p>Check the roster for each session you lead and record attendance
-                    without paper sign-in sheets.</p>
+                <p>Check the roster for each class you lead and record attendance
+                    digitally.</p>
             </div>
             <div class="card">
                 <h3>Staff</h3>
