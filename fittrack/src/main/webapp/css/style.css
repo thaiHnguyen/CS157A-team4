@@ -200,6 +200,11 @@ label.inline { display: inline; margin: 0; font-size: inherit; cursor: pointer; 
 button.btn { font-family: inherit; }
 .btn-sm { padding: 5px 12px; font-size: 14px; }
 
+/* schedule filters: four fields in a row, buttons underneath */
+.filters { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 14px; }
+.filter-actions { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+@media (max-width: 720px) { .filters { grid-template-columns: 1fr 1fr; } }
+
 .success {
     margin: 0 0 16px;
     padding: 10px 12px;
