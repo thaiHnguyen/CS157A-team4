@@ -3,6 +3,8 @@
     Lists every upcoming class with its trainer, room, and live remaining spots.
     Optional filters for date, time of day, trainer, and class type are read
     from the URL (GET), and each one that is set adds an AND to the WHERE.
+    FR 1.1.5: members also get a Book button on each open class, which posts
+    to book.jsp.
 --%>
 <%@ include file="/WEB-INF/jspf/common.jspf" %>
 <%
@@ -99,15 +101,20 @@
         </form>
     <%
             // upcoming classes: start with the fixed part, then add filters
+            // MyStatus is the signed-in user's own booking for the class:
+            // BOOKED, CANCELLED, or NULL when they have none.
             StringBuilder sql = new StringBuilder(
                 "SELECT c.ClassId, c.StartTime, ct.Title, u.Name AS Trainer, c.RoomNumber, c.Capacity, "
                 + "       (SELECT COUNT(*) FROM Booking b "
-                + "         WHERE b.ClassId = c.ClassId AND b.Status = 'BOOKED') AS Booked "
+                + "         WHERE b.ClassId = c.ClassId AND b.Status = 'BOOKED') AS Booked, "
+                + "       (SELECT mb.Status FROM Booking mb "
+                + "         WHERE mb.ClassId = c.ClassId AND mb.MemberId = ?) AS MyStatus "
                 + "  FROM `Class` c "
                 + "  JOIN ClassType ct  ON ct.ClassTypeId = c.ClassTypeId "
                 + "  JOIN UserAccount u ON u.UserId = c.TrainerId "
                 + " WHERE c.StartTime >= NOW() ");
             List<Object> params = new ArrayList<>();
+            params.add(userId);                 // for MyStatus above
 
             if (onDate != null) {
                 sql.append(" AND DATE(c.StartTime) = ? ");
@@ -136,14 +143,19 @@
                 ps.setObject(i + 1, params.get(i));
             }
             rs = ps.executeQuery();
+
+            // book.jsp sends the member back here with the same filters
+            String back = request.getQueryString() == null ? "" : request.getQueryString();
     %>
         <table>
-            <tr><th>When</th><th>Class</th><th>Trainer</th><th>Room</th><th>Spots left</th></tr>
+            <tr><th>When</th><th>Class</th><th>Trainer</th><th>Room</th><th>Spots left</th>
+                <% if (isMember) { %><th></th><% } %></tr>
     <%
             int n = 0;
             while (rs.next()) {
                 n++;
                 int left = rs.getInt("Capacity") - rs.getInt("Booked");
+                boolean mine = "BOOKED".equals(rs.getString("MyStatus"));
     %>
             <tr>
                 <td class="nowrap"><%= when(rs.getObject("StartTime", LocalDateTime.class)) %></td>
@@ -151,12 +163,25 @@
                 <td><%= esc(rs.getString("Trainer")) %></td>
                 <td><%= esc(rs.getString("RoomNumber")) %></td>
                 <% if (left <= 0) { %><td class="full">FULL</td><% } else { %><td class="left"><%= left %></td><% } %>
+                <% if (isMember) { %>
+                <td class="nowrap">
+                    <% if (mine) { %>
+                    <span class="muted">Booked &#10003;</span>
+                    <% } else if (left > 0) { %>
+                    <form method="post" action="<%= ctx %>/book.jsp">
+                        <input type="hidden" name="classId" value="<%= rs.getInt("ClassId") %>">
+                        <input type="hidden" name="back" value="<%= esc(back) %>">
+                        <button class="btn btn-sm" type="submit">Book</button>
+                    </form>
+                    <% } %>
+                </td>
+                <% } %>
             </tr>
     <%
             }
             if (n == 0) {
     %>
-            <tr><td colspan="5" class="muted">No upcoming classes match these filters.
+            <tr><td colspan="<%= isMember ? 6 : 5 %>" class="muted">No upcoming classes match these filters.
                 <a href="<%= ctx %>/schedule.jsp">Clear filters</a></td></tr>
     <%
             }
