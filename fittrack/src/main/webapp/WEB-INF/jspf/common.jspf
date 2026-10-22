@@ -1,0 +1,131 @@
+<%--
+  common.jspf -- shared code included at the top of every page with
+      <%@ include file="/WEB-INF/jspf/common.jspf" %>
+
+  It holds:
+    - the MySQL connection settings (the ONLY place the password lives)
+    - small helpers: esc() for safe HTML output, date/money formatting,
+      and password hashing
+    - the logged-in user's session values: ctx, userId, role, fullName
+    - a one-time "flash" message passed between pages after a redirect
+
+  Files under WEB-INF cannot be opened directly from the browser.
+--%>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="java.sql.*, java.math.BigDecimal, java.time.*, java.time.format.DateTimeFormatter, java.util.*, java.security.*, java.nio.charset.StandardCharsets" %>
+<%!
+    // ---- MySQL settings: change DB_PASSWORD to your own root password ----
+    static final String DB_URL = "jdbc:mysql://localhost:3306/fittrack"
+        + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Los_Angeles";
+    static final String DB_USER = "root";
+    static final String DB_PASSWORD = "CHANGE_THIS"; //Change this to your mysql password
+
+    Connection getConnection() throws Exception {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+    }
+
+    // Escape text before printing it into HTML, so a name like
+    // <script> shows as text instead of running (prevents XSS).
+    String esc(Object value) {
+        if (value == null) return "";
+        String s = value.toString();
+        StringBuilder sb = new StringBuilder(s.length() + 16);
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            switch (c) {
+                case '<':  sb.append("&lt;");   break;
+                case '>':  sb.append("&gt;");   break;
+                case '&':  sb.append("&amp;");  break;
+                case '"':  sb.append("&quot;"); break;
+                case '\'': sb.append("&#39;");  break;
+                default:   sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    // ---- formatting ----
+    static final DateTimeFormatter WHEN = DateTimeFormatter.ofPattern("EEE, MMM d, h:mm a", Locale.US);
+    static final DateTimeFormatter DAY  = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.US);
+
+    String when(LocalDateTime t) { return t == null ? "" : t.format(WHEN); }
+    String day(LocalDate d)      { return d == null ? "" : d.format(DAY); }
+    String money(BigDecimal m)   { return m == null ? "" : "$" + m.setScale(2); }
+
+    // ---- passwords ----
+    // Stored as  salt$hash  where hash = SHA-256(salt + password) in hex.
+    // The seed script builds the demo passwords with MySQL's SHA2() in the
+    // same format, so both sides agree.
+    String sha256Hex(String text) {
+        try {
+            byte[] d = MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            for (byte b : d) sb.append(String.format("%02x", b));
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    String hashPassword(String password) {
+        byte[] raw = new byte[8];
+        new SecureRandom().nextBytes(raw);
+        StringBuilder salt = new StringBuilder();
+        for (byte b : raw) salt.append(String.format("%02x", b));
+        return salt + "$" + sha256Hex(salt + password);
+    }
+
+    boolean checkPassword(String password, String stored) {
+        if (password == null || stored == null) return false;
+        int cut = stored.indexOf('$');
+        if (cut < 0) return false;
+        String salt = stored.substring(0, cut);
+        String expected = stored.substring(cut + 1);
+        return MessageDigest.isEqual(
+            expected.getBytes(StandardCharsets.US_ASCII),
+            sha256Hex(salt + password).getBytes(StandardCharsets.US_ASCII));
+    }
+
+    // ---- input helpers ----
+    String param(HttpServletRequest req, String name) {
+        String v = req.getParameter(name);
+        return v == null ? "" : v.trim();
+    }
+
+    Integer toInt(String s) {
+        try { return Integer.valueOf(s.trim()); } catch (Exception e) { return null; }
+    }
+
+    LocalDate toDate(String s) {
+        try { return LocalDate.parse(s.trim()); } catch (Exception e) { return null; }
+    }
+
+    boolean validPhone(String s) {
+        return s.matches("[0-9()+\\- .]{7,20}");
+    }
+
+    void rollback(Connection con) {
+        if (con != null) { try { con.rollback(); } catch (SQLException ignore) { } }
+    }
+
+    void close(Connection con) {
+        if (con != null) { try { con.close(); } catch (SQLException ignore) { } }
+    }
+%>
+<%
+    request.setCharacterEncoding("UTF-8");
+
+    String  ctx      = request.getContextPath();
+    Integer userId   = (Integer) session.getAttribute("userId");
+    String  role     = (String)  session.getAttribute("role");
+    String  fullName = (String)  session.getAttribute("fullName");
+    boolean isMember = "MEMBER".equals(role);
+
+    // A flash message is set before a redirect and shown once on the next
+    // page. It is stored as "ok:text" or "err:text".
+    String flash = (String) session.getAttribute("flash");
+    session.removeAttribute("flash");
+    boolean flashOk = flash != null && flash.startsWith("ok:");
+    String flashText = flash == null ? null : flash.substring(flash.indexOf(':') + 1);
+%>

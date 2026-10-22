@@ -25,8 +25,8 @@ TRUNCATE TABLE UserAccount;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Accounts: UserId 1-10 are trainers, 11-20 are members, 21-30 are staff.
--- PasswordHash holds the plain demo password until hashing is added,
--- because login.jsp currently compares it directly. Every account: demo123
+-- Every demo account's password is demo123. The plain text below is
+-- replaced with a salted hash by the UPDATE right after this INSERT.
 INSERT INTO UserAccount (UserId, Email, PasswordHash, Role, Name, Phone, DateOfBirth) VALUES
     ( 1, 'john.doe@fittrack.test',         'demo123', 'TRAINER', 'John Doe',         '408-555-0101', '1988-02-14'),
     ( 2, 'jane.doe@fittrack.test',         'demo123', 'TRAINER', 'Jane Doe',         '408-555-0102', '1990-09-03'),
@@ -58,6 +58,15 @@ INSERT INTO UserAccount (UserId, Email, PasswordHash, Role, Name, Phone, DateOfB
     (28, 'brian.foster@fittrack.test',     'demo123', 'STAFF',   'Brian Foster',     '408-555-0208', '1985-06-27'),
     (29, 'chloe.martin@fittrack.test',     'demo123', 'STAFF',   'Chloe Martin',     '408-555-0209', '1998-09-13'),
     (30, 'ryan.patel@fittrack.test',       'demo123', 'STAFF',   'Ryan Patel',       '408-555-0210', '1994-02-08');
+
+-- Hash the demo passwords. Format: salt$hash, where the salt is 16 hex
+-- characters and hash = SHA-256(salt + password). register.jsp and
+-- login.jsp use the same format (see WEB-INF/jspf/common.jspf).
+-- The WHERE clause keeps MySQL Workbench's safe-update mode happy.
+UPDATE UserAccount
+    SET PasswordHash = CONCAT(LEFT(SHA2(Email, 256), 16), '$',
+                                SHA2(CONCAT(LEFT(SHA2(Email, 256), 16), PasswordHash), 256))
+    WHERE UserId BETWEEN 1 AND 30;
 
 -- Staff: UserId 21-30. Inserted before Trainer because Trainer.AddedBy
 -- references Staff.
@@ -119,8 +128,10 @@ INSERT INTO MembershipTier (TierId, TierName, TierLevel, Fee, Description) VALUE
 -- Cara (13) renewed after her Basic expired; Sofia (18) cancelled Gold and
 -- moved to Basic; Elena (16) has only an expired membership, so she has
 -- no upcoming bookings.
+
 -- UpdatedBy: the staff member who last changed the membership. NULL means
 -- the member bought or renewed it online with no staff involvement.
+
 --   Membership Manager (23) processed Sofia's cancellation and tier change;
 --   front desk (24, 25) verified Priya's student ID and Omar's senior rate;
 --   Corporate Accounts (26) set up Linh's employer-billed plan;
@@ -198,10 +209,8 @@ INSERT INTO `Class` (ClassId, ClassTypeId, TrainerId, RoomNumber, StartTime, Cap
     (15,  2,  2, 'Cycle',    DATE_ADD(DATE(NOW()), INTERVAL 138 HOUR), 20),
     (16,  1,  1, 'Studio A', DATE_ADD(DATE(NOW()), INTERVAL 150 HOUR), 12);
 
--- ---------------------------------------------------------------------
 -- Bookings. Only members with an active membership book upcoming classes.
 -- Class 5 has one CANCELLED row, which proves spots left ignores it.
--- ---------------------------------------------------------------------
 
 -- Bookings for the past classes, made four days ago
 INSERT INTO Booking (MemberId, ClassId, BookedAt, Status) VALUES
