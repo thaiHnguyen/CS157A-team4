@@ -23,11 +23,11 @@ Why `WEB-INF` and not the repo root: Tomcat runs a copy of the `webapp` folder, 
 CS157AProject/ 
 ├── sql/
 
-│   ├── 01_setup.sql              first-time setup: database, tables, sample data
+   ├── 01_setup.sql              first-time setup: database, tables, sample data
 
-│   ├── 02_fittrack_schema.sql    tables only
+   ├── 02_fittrack_schema.sql    tables only
 
-│   └── 03_seed.sql               sample data only
+   └── 03_seed.sql               sample data only
 
 └── fittrack/                     the web project
 
