@@ -20,27 +20,33 @@ Why `WEB-INF` and not the repo root: Tomcat runs a copy of the `webapp` folder, 
 
 ## Repository Structure
 
-CS157AProject/ 
-
+```text
+CS157AProject/
+├── .gitignore                    ignores .env (your password) and Eclipse/Tomcat files
 ├── sql/
-   ├── 01_setup.sql              first-time setup: database, tables, sample data
-   ├── 02_fittrack_schema.sql    tables only
-   └── 03_seed.sql               sample data only
+│   ├── 01_setup.sql              first-time setup: database, tables, sample data
+│   ├── 02_fittrack_schema.sql    tables only
+│   └── 03_seed.sql               sample data only
 └── fittrack/                     the web project
     └── src/main/webapp/
         ├── index.jsp             public landing page
-        ├── login.jsp             FR 3.1.1 sign in (members, trainers, staff)
-        ├── register.jsp          FR 3.1.1 member sign-up
+        ├── login.jsp             FR 1.1.1 sign in (members, trainers, staff)
+        ├── register.jsp          FR 1.1.1 member sign-up
         ├── home.jsp              dashboard after sign-in
+        ├── profile.jsp           FR 1.1.2 update profile
+        ├── schedule.jsp          FR 1.1.4 browse classes with filters
+        ├── book.jsp              FR 1.1.5 book a class (no page, redirects back)
         ├── logout.jsp
         ├── css/style.css
+        ├── assets/img/
         └── WEB-INF/
-            ├── .env.example      template for your DB password (copy to .env)
-            ├── .env              YOUR password, not committed (you create it)
+            ├── .env.example      template for your DB settings (copy to .env)
+            ├── .env              YOUR DB user + password, not committed (you create it)
             ├── jspf/common.jspf  DB connection + shared helpers
             ├── jspf/topbar.jspf  navigation bar
             └── lib/mysql-connector-j-*.jar
-            
+```
+
 ## What changed in the Login branch (FR 3.1.1 Register and Login)
 
 This branch implements FR 3.1.1 Register and Login from the proposal and updates the pages it touches so they work with the current ERD schema. No other FRs are included yet.
