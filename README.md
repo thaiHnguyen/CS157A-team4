@@ -100,8 +100,6 @@ DB_PASSWORD=your_mysql_password_here
 
 - If a page says `Access denied for user 'root'`, the password in `.env` is wrong.
 
-g.
-
 5. Start a Server - Eclipse: as shown in homework 1. VS Code: right-click Tomcat -> Publish Server (Full) after any change.
 
 - Open ```localhost:8080/fittrack/``` (in VS Code the name may be the deployment name, e.g. `localhost:8080/webapp/`)
