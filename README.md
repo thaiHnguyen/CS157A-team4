@@ -8,6 +8,16 @@ Instructor: Mike Wu.
 
 A three-tier web application: the browser talks to a JSP running on Apache Tomcat 10, and the JSP reads from MySQL 8.0 over JDBC. The current milestone is the home page, which lists upcoming sessions with live remaining spots and the membership tiers.
 
+## Database password in `.env` (branch `env-config`)
+The MySQL password no longer lives in `common.jspf`. Each teammate keeps it in their own
+`fittrack/src/main/webapp/WEB-INF/.env`, which git ignores.
+
+- `WEB-INF/jspf/common.jspf`: `getConnection()` reads `DB_PASSWORD` (and optional `DB_USER`, `DB_URL`) from `WEB-INF/.env`. Shows a clear error if the file or the password is missing.
+- `WEB-INF/.env.example`: template to copy. Committed, no real password.
+- `.gitignore`: ignores `.env` everywhere, keeps `.env.example`.
+
+Why `WEB-INF` and not the repo root: Tomcat runs a copy of the `webapp` folder, so a `.env` at the repo root would not be deployed. Files in `WEB-INF` are deployed with the app and can never be opened from the browser.
+
 ## Repository Structure
 
 CS157AProject/
@@ -24,7 +34,9 @@ CS157AProject/
         ├── logout.jsp
         ├── css/style.css
         └── WEB-INF/
-            ├── jspf/common.jspf  DB settings + shared helpers
+            ├── .env.example      template for your DB password (copy to .env)
+            ├── .env              YOUR password, not committed (you create it)
+            ├── jspf/common.jspf  DB connection + shared helpers
             ├── jspf/topbar.jspf  navigation bar
             └── lib/mysql-connector-j-*.jar
             
@@ -35,7 +47,7 @@ This branch implements FR 3.1.1 Register and Login from the proposal and updates
 # New Files:
 - `register.jsp`: Member sign-up form. Inserts a UserAccount row (Role = MEMBER) and a linked Member row in one transaction, then signs the new member in.
 
-- `WEB-INF/jspf/common.jspf`: Shared code included by every page: the MySQL settings (the only place the password lives now), password hashing, HTML escaping, input helpers, and the session values (userId, role, fullName).
+- `WEB-INF/jspf/common.jspf`: Shared code included by every page: the MySQL connection (the password now comes from `WEB-INF/.env`), password hashing, HTML escaping, input helpers, and the session values (userId, role, fullName).
 
 - `WEB-INF/jspf/topbar.jspf`: Shared navigation bar and one-time success/error message. Shows Sign in / Join when signed out, Dashboard / Log out when signed in.
 
@@ -53,7 +65,7 @@ This branch implements FR 3.1.1 Register and Login from the proposal and updates
 # After you pull this branch
 - Re-run sql/01_setup.sql once. Old databases still have plain-text passwords and nobody will be able to log in.
 
-- Set your MySQL password in WEB-INF/jspf/common.jspf (no longer in home.jsp).
+- Set your MySQL password in `WEB-INF/.env` (see "Set your MySQL password" below).
 
 - Republish / restart Tomcat
 
@@ -85,18 +97,25 @@ This branch implements FR 3.1.1 Register and Login from the proposal and updates
     + VS Code (Community Server Connector): right-click Tomcat -> Add Deployment -> Exploded -> select fittrack/src/main/webapp, leave the assembly file blank
 
 - Register Tomcat 10.1
-    + As shown in homework 1, but choose your directory that you have installed tomcat 10.1
+    + As shown in homework 1, but choose your directory that you have installed tomcat 10- Set your MySQL password (once, in a `.env` file)
+    + Go to `fittrack/src/main/webapp/WEB-INF/`
+    + Copy `.env.example` and name the copy `.env` (same folder)
+    + Open `.env` and put your own MySQL root password after `DB_PASSWORD=`
 
-- Remember to set your MySQL password
-    + Open fittrack/src/main/webapp/WEB-INF/jspf/common.jspf and change this line to your own MySQL root password:
-
-```bash 
-static final String DB_PASSWORD = "CHANGE_ME";
+```bash
+DB_USER=root
+DB_PASSWORD=your_mysql_password_here
 ```
 
-- Every page includes this file, so this is the only place to change it.
+- `common.jspf` reads this file every time a page connects to MySQL, so you never edit Java code for your password.
 
-- **Do not commit your real password.** Change it back to `CHANGE_ME` before committing.
+- `.env` is in `.gitignore`, so **your password is never committed**. Only `.env.example` (no real password) is on GitHub. `git status` should never list `.env`.
+
+- If a page says `WEB-INF/.env not found`, the file is missing or in the wrong folder (it must be next to `.env.example`, inside `WEB-INF`). In VS Code, run Publish Server (Full) after creating it.
+
+- If a page says `Access denied for user 'root'`, the password in `.env` is wrong.
+
+g.
 
 5. Start a Server - Eclipse: as shown in homework 1. VS Code: right-click Tomcat -> Publish Server (Full) after any change.
 

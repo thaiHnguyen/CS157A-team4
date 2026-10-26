@@ -62,7 +62,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Sign in -- FitTrack</title>
+    <title>Sign in - FitTrack</title>
     <link rel="stylesheet" href="<%= ctx %>/css/style.css">
 </head>
 

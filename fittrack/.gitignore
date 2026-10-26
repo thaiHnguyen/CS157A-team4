@@ -1,1 +1,7 @@
 /build/
+/.metadata/
+Servers/
+
+# Local database settings (each teammate has their own; never commit)
+.env
+!.env.example
