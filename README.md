@@ -21,41 +21,24 @@ Why `WEB-INF` and not the repo root: Tomcat runs a copy of the `webapp` folder, 
 ## Repository Structure
 
 CS157AProject/ 
+
 ├── sql/
-
    ├── 01_setup.sql              first-time setup: database, tables, sample data
-
    ├── 02_fittrack_schema.sql    tables only
-
    └── 03_seed.sql               sample data only
-
 └── fittrack/                     the web project
-
     └── src/main/webapp/
-
         ├── index.jsp             public landing page
-
         ├── login.jsp             FR 3.1.1 sign in (members, trainers, staff)
-
         ├── register.jsp          FR 3.1.1 member sign-up
-
         ├── home.jsp              dashboard after sign-in
-
         ├── logout.jsp
-
         ├── css/style.css
-
         └── WEB-INF/
-
             ├── .env.example      template for your DB password (copy to .env)
-
-
             ├── .env              YOUR password, not committed (you create it)
-
             ├── jspf/common.jspf  DB connection + shared helpers
-
             ├── jspf/topbar.jspf  navigation bar
-
             └── lib/mysql-connector-j-*.jar
             
 ## What changed in the Login branch (FR 3.1.1 Register and Login)
