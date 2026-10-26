@@ -20,7 +20,9 @@ Why `WEB-INF` and not the repo root: Tomcat runs a copy of the `webapp` folder, 
 
 ## Repository Structure
 
+```text
 CS157AProject/
+├── .gitignore                    ignores .env (your password) and Eclipse/Tomcat files
 ├── sql/
 │   ├── 01_setup.sql              first-time setup: database, tables, sample data
 │   ├── 02_fittrack_schema.sql    tables only
@@ -28,39 +30,22 @@ CS157AProject/
 └── fittrack/                     the web project
     └── src/main/webapp/
         ├── index.jsp             public landing page
-        ├── login.jsp             FR 3.1.1 sign in (members, trainers, staff)
-        ├── register.jsp          FR 3.1.1 member sign-up
+        ├── login.jsp             FR 1.1.1 sign in (members, trainers, staff)
+        ├── register.jsp          FR 1.1.1 member sign-up
         ├── home.jsp              dashboard after sign-in
+        ├── profile.jsp           FR 1.1.2 update profile
+        ├── schedule.jsp          FR 1.1.4 browse classes with filters
+        ├── book.jsp              FR 1.1.5 book a class (no page, redirects back)
         ├── logout.jsp
         ├── css/style.css
+        ├── assets/img/
         └── WEB-INF/
-            ├── .env.example      template for your DB password (copy to .env)
-            ├── .env              YOUR password, not committed (you create it)
+            ├── .env.example      template for your DB settings (copy to .env)
+            ├── .env              YOUR DB user + password, not committed (you create it)
             ├── jspf/common.jspf  DB connection + shared helpers
             ├── jspf/topbar.jspf  navigation bar
             └── lib/mysql-connector-j-*.jar
-            
-## What changed in the Login branch (FR 3.1.1 Register and Login)
-
-This branch implements FR 3.1.1 Register and Login from the proposal and updates the pages it touches so they work with the current ERD schema. No other FRs are included yet.
-
-# New Files:
-- `register.jsp`: Member sign-up form. Inserts a UserAccount row (Role = MEMBER) and a linked Member row in one transaction, then signs the new member in.
-
-- `WEB-INF/jspf/common.jspf`: Shared code included by every page: the MySQL connection (the password now comes from `WEB-INF/.env`), password hashing, HTML escaping, input helpers, and the session values (userId, role, fullName).
-
-- `WEB-INF/jspf/topbar.jspf`: Shared navigation bar and one-time success/error message. Shows Sign in / Join when signed out, Dashboard / Log out when signed in.
-
-# Updated Files
-- `login.jsp`: Checks the password against a salted hash instead of plain text. Uses the shared header. Same error message for a wrong email or a wrong password, so the form does not reveal which emails exist. Creates a new session id after login. Demo hint now lists real seed accounts.
-
-- `home.jsp`:	Rewritten for the current schema (Class, ClassType, Booking, Membership). The old version queried Schedule / SessionBooking, which no longer exist, and had its own copy of the DB password. Members see their membership status and upcoming bookings; everyone sees the next five classes with live spots left.
-
-- `index.jsp`: Uses the shared header. Adds a Become a member button.
-
-- `css/style.css`: Update Styling	
-
-- `sql/01_setup.sql`, `sql/03_seed.sql`: New UPDATE right after the UserAccount insert that hashes every demo password. Both files stay identical in their seed section. Works with Workbench safe-update mode.
+```
 
 # After you pull this branch
 - Re-run sql/01_setup.sql once. Old databases still have plain-text passwords and nobody will be able to log in.
@@ -114,8 +99,6 @@ DB_PASSWORD=your_mysql_password_here
 - If a page says `WEB-INF/.env not found`, the file is missing or in the wrong folder (it must be next to `.env.example`, inside `WEB-INF`). In VS Code, run Publish Server (Full) after creating it.
 
 - If a page says `Access denied for user 'root'`, the password in `.env` is wrong.
-
-g.
 
 5. Start a Server - Eclipse: as shown in homework 1. VS Code: right-click Tomcat -> Publish Server (Full) after any change.
 
