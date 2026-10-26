@@ -47,28 +47,6 @@ CS157AProject/
             └── lib/mysql-connector-j-*.jar
 ```
 
-## What changed in the Login branch (FR 3.1.1 Register and Login)
-
-This branch implements FR 3.1.1 Register and Login from the proposal and updates the pages it touches so they work with the current ERD schema. No other FRs are included yet.
-
-# New Files:
-- `register.jsp`: Member sign-up form. Inserts a UserAccount row (Role = MEMBER) and a linked Member row in one transaction, then signs the new member in.
-
-- `WEB-INF/jspf/common.jspf`: Shared code included by every page: the MySQL connection (the password now comes from `WEB-INF/.env`), password hashing, HTML escaping, input helpers, and the session values (userId, role, fullName).
-
-- `WEB-INF/jspf/topbar.jspf`: Shared navigation bar and one-time success/error message. Shows Sign in / Join when signed out, Dashboard / Log out when signed in.
-
-# Updated Files
-- `login.jsp`: Checks the password against a salted hash instead of plain text. Uses the shared header. Same error message for a wrong email or a wrong password, so the form does not reveal which emails exist. Creates a new session id after login. Demo hint now lists real seed accounts.
-
-- `home.jsp`:	Rewritten for the current schema (Class, ClassType, Booking, Membership). The old version queried Schedule / SessionBooking, which no longer exist, and had its own copy of the DB password. Members see their membership status and upcoming bookings; everyone sees the next five classes with live spots left.
-
-- `index.jsp`: Uses the shared header. Adds a Become a member button.
-
-- `css/style.css`: Update Styling	
-
-- `sql/01_setup.sql`, `sql/03_seed.sql`: New UPDATE right after the UserAccount insert that hashes every demo password. Both files stay identical in their seed section. Works with Workbench safe-update mode.
-
 # After you pull this branch
 - Re-run sql/01_setup.sql once. Old databases still have plain-text passwords and nobody will be able to log in.
 
