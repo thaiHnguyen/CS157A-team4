@@ -64,3 +64,18 @@
 </body>
 
 </html>
+# FitTrack database settings
+#
+# 1. Copy this file to a new file named .env in this same folder:
+#        fittrack/src/main/webapp/WEB-INF/.env
+# 2. Put your own MySQL password after DB_PASSWORD=
+# 3. Republish / restart Tomcat once so it gets the new file.
+#
+# .env is listed in .gitignore, so your password is never committed.
+# Only .env.example (this file, no real password) goes to GitHub.
+
+DB_USER=root
+DB_PASSWORD=your_mysql_password_here
+
+# Optional. Leave commented out unless your MySQL is not on localhost:3306.
+# DB_URL=jdbc:mysql://localhost:3306/fittrack?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Los_Angeles

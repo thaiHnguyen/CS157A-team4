@@ -3,7 +3,8 @@
       <%@ include file="/WEB-INF/jspf/common.jspf" %>
 
   It holds:
-    - the MySQL connection settings (the ONLY place the password lives)
+    - the MySQL connection, using the settings in WEB-INF/.env
+      (your own local .env for security reason; copy WEB-INF/.env.example)
     - small helpers: esc() for safe HTML output, date/money formatting,
       and password hashing
     - the logged-in user's session values: ctx, userId, role, fullName
@@ -14,15 +15,57 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.sql.*, java.math.BigDecimal, java.time.*, java.time.format.DateTimeFormatter, java.util.*, java.security.*, java.nio.charset.StandardCharsets" %>
 <%!
-    // ---- MySQL settings: change DB_PASSWORD to your own root password ----
-    static final String DB_URL = "jdbc:mysql://localhost:3306/fittrack"
+    // ---- MySQL settings ----
+    // Read from WEB-INF/.env so nobody has to edit this file or commit a
+    // password. Copy WEB-INF/.env.example to WEB-INF/.env and fill it in.
+    // WEB-INF is deployed with the app but can never be opened in a browser.
+    static final String DEFAULT_DB_URL = "jdbc:mysql://localhost:3306/fittrack"
         + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Los_Angeles";
-    static final String DB_USER = "root";
-    static final String DB_PASSWORD = "CHANGE_THIS"; //Change this to your mysql password
+    static final String DEFAULT_DB_USER = "root";
+
+    // Reads KEY=VALUE lines. Blank lines and lines starting with # are skipped,
+    // and quotes around a value are removed. Returns null if the file is missing.
+    // The file is read on every connection, so after the server has the new
+    // copy an edit takes effect within a few seconds (no restart needed).
+    Map<String, String> loadEnv() throws java.io.IOException {
+        java.io.InputStream in = getServletContext().getResourceAsStream("/WEB-INF/.env");
+        if (in == null) return null;
+        Map<String, String> env = new HashMap<>();
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(in, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty() || line.startsWith("#")) continue;
+                int eq = line.indexOf('=');
+                if (eq < 1) continue;
+                String key = line.substring(0, eq).trim();
+                String value = line.substring(eq + 1).trim();
+                if (value.length() >= 2
+                        && ((value.startsWith("\"") && value.endsWith("\""))
+                         || (value.startsWith("'") && value.endsWith("'")))) {
+                    value = value.substring(1, value.length() - 1);
+                }
+                env.put(key, value);
+            }
+        }
+        return env;
+    }
 
     Connection getConnection() throws Exception {
+        Map<String, String> env = loadEnv();
+        if (env == null) {
+            throw new SQLException("WEB-INF/.env not found. Copy WEB-INF/.env.example to "
+                + "WEB-INF/.env and put your MySQL password in it.");
+        }
+        if (!env.containsKey("DB_PASSWORD")) {
+            throw new SQLException("DB_PASSWORD is missing from WEB-INF/.env.");
+        }
+        String url  = env.getOrDefault("DB_URL", "").isEmpty()  ? DEFAULT_DB_URL  : env.get("DB_URL");
+        String user = env.getOrDefault("DB_USER", "").isEmpty() ? DEFAULT_DB_USER : env.get("DB_USER");
+
         Class.forName("com.mysql.cj.jdbc.Driver");
-        return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+        return DriverManager.getConnection(url, user, env.get("DB_PASSWORD"));
     }
 
     // Escape text before printing it into HTML, so a name like
