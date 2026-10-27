@@ -183,8 +183,7 @@ CREATE INDEX idx_class_start ON `Class` (StartTime);
 CREATE INDEX idx_membership_status ON Membership (Status, EndDate);
 
 -- Accounts: UserId 1-10 are trainers, 11-20 are members, 21-30 are staff.
--- PasswordHash holds the plain demo password until hashing is added,
--- because login.jsp currently compares it directly. Every account: demo123
+-- Every account: demo123 (hashed by the UPDATE right after this insert).
 INSERT INTO UserAccount (UserId, Email, PasswordHash, Role, Name, Phone, DateOfBirth) VALUES
     ( 1, 'john.doe@fittrack.test',         'demo123', 'TRAINER', 'John Doe',         '408-555-0101', '1988-02-14'),
     ( 2, 'jane.doe@fittrack.test',         'demo123', 'TRAINER', 'Jane Doe',         '408-555-0102', '1990-09-03'),
@@ -216,6 +215,15 @@ INSERT INTO UserAccount (UserId, Email, PasswordHash, Role, Name, Phone, DateOfB
     (28, 'brian.foster@fittrack.test',     'demo123', 'STAFF',   'Brian Foster',     '408-555-0208', '1985-06-27'),
     (29, 'chloe.martin@fittrack.test',     'demo123', 'STAFF',   'Chloe Martin',     '408-555-0209', '1998-09-13'),
     (30, 'ryan.patel@fittrack.test',       'demo123', 'STAFF',   'Ryan Patel',       '408-555-0210', '1994-02-08');
+
+-- Hash the demo passwords. Format: salt$hash, where the salt is 16 hex
+-- characters and hash = SHA-256(salt + password). register.jsp and
+-- login.jsp use the same format (see WEB-INF/jspf/common.jspf).
+-- The WHERE clause keeps MySQL Workbench's safe-update mode happy.
+UPDATE UserAccount
+    SET PasswordHash = CONCAT(LEFT(SHA2(Email, 256), 16), '$',
+                                SHA2(CONCAT(LEFT(SHA2(Email, 256), 16), PasswordHash), 256))
+    WHERE UserId BETWEEN 1 AND 30;
 
 -- Staff: UserId 21-30. Inserted before Trainer because Trainer.AddedBy
 -- references Staff.
