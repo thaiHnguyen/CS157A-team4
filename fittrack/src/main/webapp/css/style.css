@@ -197,7 +197,11 @@ select { background: var(--card); }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
 .opt { color: var(--muted); font-weight: 400; }
 label.inline { display: inline; margin: 0; font-size: inherit; cursor: pointer; }
-button.btn { font-family: inherit; }
+
+button.btn, button.btn-quiet { font-family: inherit; }
+button.btn-quiet:hover { border-color: var(--muted); }
+form.inline { display: inline; margin-left: 8px; }
+
 .btn-sm { padding: 5px 12px; font-size: 14px; }
 
 /* schedule filters: four fields in a row, buttons underneath */
