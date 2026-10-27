@@ -75,7 +75,7 @@
 
                 // my upcoming bookings 
                 PreparedStatement mine = con.prepareStatement(
-                    "SELECT c.StartTime, ct.Title, u.Name AS Trainer, c.RoomNumber "
+                    "SELECT c.ClassId, c.StartTime, ct.Title, u.Name AS Trainer, c.RoomNumber "
                     + "  FROM Booking b "
                     + "  JOIN `Class` c     ON c.ClassId = b.ClassId "
                     + "  JOIN ClassType ct  ON ct.ClassTypeId = c.ClassTypeId "
@@ -87,7 +87,7 @@
     %>
         <h2>Your upcoming classes</h2>
         <table>
-            <tr><th>When</th><th>Class</th><th>Trainer</th><th>Room</th></tr>
+            <tr><th>When</th><th>Class</th><th>Trainer</th><th>Room</th><th></th></tr>
     <%
                 int n = 0;
                 while (rs.next()) {
@@ -98,12 +98,21 @@
                 <td><%= esc(rs.getString("Title")) %></td>
                 <td><%= esc(rs.getString("Trainer")) %></td>
                 <td><%= esc(rs.getString("RoomNumber")) %></td>
+                <td class="nowrap">
+                    <%-- FR 1.1.6: cancel this booking (cancel.jsp) --%>
+                    <form method="post" action="<%= ctx %>/cancel.jsp"
+                        onsubmit="return confirm('Cancel your booking for this class?');">
+                        <input type="hidden" name="classId" value="<%= rs.getInt("ClassId") %>">
+                        <input type="hidden" name="from" value="home">
+                        <button class="btn-quiet btn-sm" type="submit">Cancel</button>
+                    </form>
+                </td>
             </tr>
     <%
                 }
                 if (n == 0) {
     %>
-            <tr><td colspan="4" class="muted">Nothing booked yet.
+            <tr><td colspan="5" class="muted">Nothing booked yet.
                 <a href="<%= ctx %>/schedule.jsp">Browse the schedule</a></td></tr>
     <%
                 }

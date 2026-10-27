@@ -144,7 +144,7 @@
             }
             rs = ps.executeQuery();
 
-            // book.jsp sends the member back here with the same filters
+            // book.jsp and cancel.jsp send the member back here with the same filters
             String back = request.getQueryString() == null ? "" : request.getQueryString();
     %>
         <table>
@@ -167,6 +167,13 @@
                 <td class="nowrap">
                     <% if (mine) { %>
                     <span class="muted">Booked &#10003;</span>
+                    <%-- FR 1.1.6: cancel this booking (cancel.jsp) --%>
+                    <form method="post" action="<%= ctx %>/cancel.jsp" class="inline"
+                        onsubmit="return confirm('Cancel your booking for this class?');">
+                        <input type="hidden" name="classId" value="<%= rs.getInt("ClassId") %>">
+                        <input type="hidden" name="back" value="<%= esc(back) %>">
+                        <button class="btn-quiet btn-sm" type="submit">Cancel</button>
+                    </form>
                     <% } else if (left > 0) { %>
                     <form method="post" action="<%= ctx %>/book.jsp">
                         <input type="hidden" name="classId" value="<%= rs.getInt("ClassId") %>">

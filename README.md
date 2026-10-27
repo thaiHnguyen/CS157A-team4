@@ -36,6 +36,7 @@ CS157AProject/
         ├── profile.jsp           FR 1.1.2 update profile
         ├── schedule.jsp          FR 1.1.4 browse classes with filters
         ├── book.jsp              FR 1.1.5 book a class (no page, redirects back)
+        ├── cancel.jsp            FR 1.1.6 cancel a booking (no page, redirects back)
         ├── logout.jsp
         ├── css/style.css
         ├── assets/img/
@@ -61,7 +62,7 @@ CS157AProject/
 - Tomcat: 10.1
 
 ## Steps
-1. Setup database
+### Setup database
 - Open MySQL Workbench and connect to your local server
 
 - First time: run one file
@@ -100,6 +101,6 @@ DB_PASSWORD=your_mysql_password_here
 
 - If a page says `Access denied for user 'root'`, the password in `.env` is wrong.
 
-5. Start a Server - Eclipse: as shown in homework 1. VS Code: right-click Tomcat -> Publish Server (Full) after any change.
+### Start a Server - Eclipse: as shown in homework 1. VS Code: right-click Tomcat -> Publish Server (Full) after any change.
 
 - Open ```localhost:8080/fittrack/``` (in VS Code the name may be the deployment name, e.g. `localhost:8080/webapp/`)
