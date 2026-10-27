@@ -54,7 +54,8 @@
                 boolean taken = rs.next();
                 rs.close();
                 check.close();
-
+            
+                //If query return 1 row, taken = true => roll back
                 if (taken) {
                     errors.add("An account with that email already exists. Try signing in.");
                     con.rollback();
@@ -113,7 +114,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Join -- FitTrack</title>
+    <title>Join - FitTrack</title>
     <link rel="stylesheet" href="<%= ctx %>/css/style.css">
 </head>
 
