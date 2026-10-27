@@ -19,7 +19,9 @@
                 <a href="<%= ctx %>/membership.jsp" class="<%= here.equals("/membership.jsp") ? "on" : "" %>">Membership</a>
                 <% } %>
                 <a href="<%= ctx %>/profile.jsp"  class="<%= here.equals("/profile.jsp") ? "on" : "" %>">Profile</a>
-                <span class="who"><strong><%= esc(fullName) %></strong> &middot; <%= esc(role == null ? "" : role.toLowerCase()) %></span>
+                <%-- Shows user info--%>
+                <span class="who"><strong><%= esc(fullName) %></strong>
+                    <% if (role != null && !role.isEmpty()) { %>(<%= esc(role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase()) %>)<% } %></span>
                 <a class="btn-quiet" href="<%= ctx %>/logout.jsp">Log out</a>
             <% } %>
             </nav>

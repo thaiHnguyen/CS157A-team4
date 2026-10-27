@@ -119,7 +119,7 @@ body {
 
 .hero .btn-quiet { color: #ffffff; border-color: rgba(255,255,255,0.5); }
 
-/* ---------- feature cards ---------- */
+/*  feature cards  */
 
 .features {
     display: grid;
@@ -138,7 +138,7 @@ body {
 .card h3 { margin: 0 0 8px; font-size: 17px; }
 .card p  { margin: 0; color: var(--muted); font-size: 15px; }
 
-/* ---------- login form ---------- */
+/*  login form  */
 
 .panel {
     max-width: 420px;
@@ -178,7 +178,7 @@ input:focus { outline: 2px solid var(--green); outline-offset: 1px; }
 
 .hint { margin-top: 18px; color: var(--muted); font-size: 13px; }
 
-/* ---------- footer ---------- */
+/*  footer  */
 
 footer {
     margin-top: 56px;
@@ -190,7 +190,7 @@ footer {
 
 footer p { margin: 0 0 4px; }
 
-/* ---------- forms and messages ---------- */
+/*  forms and messages  */
 
 select { background: var(--card); }
 .panel.wide { max-width: 560px; }
@@ -230,3 +230,41 @@ main a, .hint a, .error a { color: var(--green); }
 .small { font-size: 13px; }
 .nowrap { white-space: nowrap; }
 .page-title { margin: 32px 0 16px; font-size: 28px; letter-spacing: -0.02em; }
+
+/*  content sections and tables  */
+main h2 { margin: 40px 0 6px; font-size: 22px; letter-spacing: -0.01em; }
+main .note { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    font-size: 15px;
+}
+
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--rule); }
+th { background: #eceee9; font-weight: 600; font-size: 14px; }
+tr:last-child td { border-bottom: 0; }
+
+.full { color: var(--full); font-weight: 600; }
+.left { font-weight: 600; }
+
+/* dashboard membership card */
+
+.status-card {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px 32px;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-left: 4px solid var(--green);
+    border-radius: 6px;
+    padding: 20px 22px;
+}
+.status-card.none { border-left-color: var(--full); }
+.status-card .facts { margin: 0; }
+.status-card .big { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+.card-actions { display: flex; gap: 10px; flex-wrap: wrap; }
