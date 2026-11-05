@@ -1,6 +1,7 @@
 <%--
     profile.jsp: FR 1.1.2 Update Profile.
-    SELECT the signed-in user's record to pre-fill the form, then UPDATE it.
+    Load the signed-in user's record to pre-fill the form (UserAccountDAO and
+    MemberDAO), then update it.
     The UserId always comes from the session, never from the form, so a user
     can only change their own profile. Members also have an emergency phone,
     which lives in the Member table (look at ERD for this detail).
@@ -34,21 +35,9 @@
             if (errors.isEmpty()) {
                 con.setAutoCommit(false);
 
-                PreparedStatement up = con.prepareStatement(
-                    "UPDATE UserAccount SET Name = ?, Phone = ? WHERE UserId = ?");
-                up.setString(1, name);
-                up.setString(2, phone);
-                up.setInt(3, userId);
-                up.executeUpdate();
-                up.close();
-
+                new UserAccountDAO(con).updateContact(userId, name, phone);
                 if (isMember) {
-                    PreparedStatement em = con.prepareStatement(
-                        "UPDATE Member SET EmergencyPhoneNumber = ? WHERE UserId = ?");
-                    em.setString(1, emergency.isEmpty() ? null : emergency);
-                    em.setInt(2, userId);
-                    em.executeUpdate();
-                    em.close();
+                    new MemberDAO(con).updateEmergencyPhone(userId, emergency.isEmpty() ? null : emergency);
                 }
 
                 con.commit();
@@ -59,27 +48,20 @@
             }
         }
 
-        // Load the current values,, use LEFT JOIN to you always get the UserAccount row, 
-        // whether or not there is a matching Member row
-        PreparedStatement ps = con.prepareStatement(
-            "SELECT u.Email, u.Name, u.Phone, u.DateOfBirth, u.CreatedAt, m.EmergencyPhoneNumber "
-            + "  FROM UserAccount u "
-            + "  LEFT JOIN Member m ON m.UserId = u.UserId "        
-            + " WHERE u.UserId = ?");
-        ps.setInt(1, userId);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            email = rs.getString("Email");
-            dob = rs.getObject("DateOfBirth", LocalDate.class);
-            joined = rs.getObject("CreatedAt", LocalDateTime.class);
+        // Load the current values. Every user has a UserAccount row; only
+        // members have a Member row (trainers and staff get null).
+        UserAccount account = new UserAccountDAO(con).findById(userId);
+        Member member = isMember ? new MemberDAO(con).findById(userId) : null;
+        if (account != null) {
+            email = account.getEmail();
+            dob = account.getDateOfBirth();
+            joined = account.getCreatedAt();
             if (errors.isEmpty()) {              // keep what the user typed if there were errors
-                name = rs.getString("Name");
-                phone = rs.getString("Phone") == null ? "" : rs.getString("Phone");
-                emergency = rs.getString("EmergencyPhoneNumber") == null ? "" : rs.getString("EmergencyPhoneNumber");
+                name = account.getName();
+                phone = account.getPhone() == null ? "" : account.getPhone();
+                emergency = (member == null || member.getEmergencyPhone() == null) ? "" : member.getEmergencyPhone();
             }
         }
-        rs.close();
-        ps.close();
     } catch (Exception e) {
         rollback(con);
         errors.add("Could not load or save your profile: " + e.getMessage());
