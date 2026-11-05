@@ -1,9 +1,9 @@
 <%--
-    register.jsp -- FR 3.1.1 Register. A new member creates an account.
+    register.jsp - FR 1.1.1 Register. A new member creates an account.
     The form posts back to this page.
 
-    On success: one INSERT into UserAccount (Role = MEMBER) and one linked
-    INSERT into Member, inside a single transaction so we never end up with
+    On success: UserAccountDAO.insert (Role = MEMBER) and a linked
+    MemberDAO.insert, inside a single transaction so we never end up with
     an account that has no Member row. The new member is then signed in.
 --%>
 <%@ include file="/WEB-INF/jspf/common.jspf" %>
@@ -45,44 +45,24 @@
                 con = getConnection();
                 con.setAutoCommit(false);
 
+                UserAccountDAO accounts = new UserAccountDAO(con);
+
                 // Email must be unique. The UNIQUE constraint also guards this;
                 // checking first lets us show a friendly message.
-                PreparedStatement check = con.prepareStatement(
-                    "SELECT 1 FROM UserAccount WHERE Email = ?");
-                check.setString(1, email);
-                ResultSet rs = check.executeQuery();
-                boolean taken = rs.next();
-                rs.close();
-                check.close();
-            
-                //If query return 1 row, taken = true => roll back
-                if (taken) {
+                if (accounts.emailExists(email)) {
                     errors.add("An account with that email already exists. Try signing in.");
                     con.rollback();
                 } else {
-                    PreparedStatement ins = con.prepareStatement(
-                        "INSERT INTO UserAccount (Email, PasswordHash, Role, Name, Phone, DateOfBirth) "
-                            + "VALUES (?, ?, 'MEMBER', ?, ?, ?)",
-                        Statement.RETURN_GENERATED_KEYS);
-                    ins.setString(1, email);
-                    ins.setString(2, hashPassword(password));
-                    ins.setString(3, name);
-                    ins.setString(4, phone);
-                    ins.setDate(5, java.sql.Date.valueOf(dob));
-                    ins.executeUpdate();
+                    UserAccount account = new UserAccount();
+                    account.setEmail(email);
+                    account.setPasswordHash(hashPassword(password));
+                    account.setRole("MEMBER");
+                    account.setName(name);
+                    account.setPhone(phone);
+                    account.setDateOfBirth(dob);
+                    int newId = accounts.insert(account);
 
-                    ResultSet keys = ins.getGeneratedKeys();
-                    keys.next();
-                    int newId = keys.getInt(1);
-                    keys.close();
-                    ins.close();
-
-                    PreparedStatement mem = con.prepareStatement(
-                        "INSERT INTO Member (UserId, EmergencyPhoneNumber) VALUES (?, ?)");
-                    mem.setInt(1, newId);
-                    mem.setString(2, emergency.isEmpty() ? null : emergency);
-                    mem.executeUpdate();
-                    mem.close();
+                    new MemberDAO(con).insert(new Member(newId, emergency.isEmpty() ? null : emergency));
 
                     con.commit();
 
