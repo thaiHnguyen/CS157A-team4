@@ -1,8 +1,8 @@
 <%--
     login.jsp - FR 1.1.1 Login. All subclasses of UserAccount(Members, trainers, and staff) all use this form. 
     The form posts back to this page.
-    SELECT the account by email, compare the salted password hash, and store
-    userId, role, and fullName in the HTTP session.
+    Look up the account by email (UserAccountDAO.findByEmail), compare the
+    salted password hash, and store userId, role, and fullName in the HTTP session.
 --%>
 <%@ include file="/WEB-INF/jspf/common.jspf" %>
 <%
@@ -27,18 +27,13 @@
                 con = getConnection();
 
                 // Look up account by email, then check pwd hash here
-                PreparedStatement ps = con.prepareStatement(
-                    "SELECT UserId, Role, Name, PasswordHash FROM UserAccount WHERE Email = ?");
-                ps.setString(1, email);
-                ResultSet rs = ps.executeQuery();
-                
-                if (rs.next() && checkPassword(typedPassword, rs.getString("PasswordHash"))) {
+                UserAccount account = new UserAccountDAO(con).findByEmail(email);
+
+                if (account != null && checkPassword(typedPassword, account.getPasswordHash())) {
                     request.changeSessionId();          // new session id after login
-                    session.setAttribute("userId",   rs.getInt("UserId"));
-                    session.setAttribute("role",     rs.getString("Role"));
-                    session.setAttribute("fullName", rs.getString("Name"));
-                    rs.close();
-                    ps.close();
+                    session.setAttribute("userId",   account.getUserId());
+                    session.setAttribute("role",     account.getRole());
+                    session.setAttribute("fullName", account.getName());
                     response.sendRedirect(ctx + "/home.jsp");
                     return;
                 }
@@ -46,8 +41,6 @@
                 // Same message whether the email or the password was wrong,
                 // so the form does not reveal which emails have accounts.
                 error = "That email and password do not match an account.";
-                rs.close();
-                ps.close();
             } catch (Exception e) {
                 error = "Could not reach the database: " + e.getMessage();
             } finally {
