@@ -2,12 +2,35 @@
     home.jsp - the dashboard every user lands on after signing in.
     Members see their membership status and upcoming bookings.
     Everyone sees the next few classes with live remaining spots.
+    Data comes from MembershipDAO.findActive, ClassDAO.findUpcomingBookedBy,
+    and ClassDAO.findUpcoming.
 --%>
 <%@ include file="/WEB-INF/jspf/common.jspf" %>
 <%
     if (userId == null) {
         response.sendRedirect(ctx + "/login.jsp");
         return;
+    }
+
+    // Load everything first, then render. The connection is closed before
+    // any HTML is written.
+    Membership active = null;
+    List<GymClass> myClasses = new ArrayList<>();
+    List<GymClass> nextClasses = new ArrayList<>();
+    String loadError = null;
+
+    Connection con = null;
+    try {
+        con = getConnection();
+        if (isMember) {
+            active = new MembershipDAO(con).findActive(userId);
+            myClasses = new ClassDAO(con).findUpcomingBookedBy(userId);
+        }
+        nextClasses = new ClassDAO(con).findUpcoming(5);
+    } catch (Exception e) {
+        loadError = "Could not load gym data: " + e.getMessage();
+    } finally {
+        close(con);
     }
 %>
 <!DOCTYPE html>
@@ -26,29 +49,20 @@
     <div class="wrap">
     <main>
         <h1 class="page-title">Hi, <%= esc(fullName) %></h1>
+    <% if (loadError != null) { %>
+        <p class="error"><%= esc(loadError) %></p>
+    <% } else { %>
     <%
-        Connection con = null;
-        try {
-            con = getConnection();
-
             if (isMember) {
                 // - membership status 
-                PreparedStatement cur = con.prepareStatement(
-                    "SELECT t.TierName, m.EndDate, DATEDIFF(m.EndDate, CURDATE()) AS DaysLeft "
-                    + "  FROM Membership m JOIN MembershipTier t ON t.TierId = m.TierId "
-                    + " WHERE m.MemberId = ? AND m.Status = 'ACTIVE' "
-                    + "   AND CURDATE() BETWEEN m.StartDate AND m.EndDate "
-                    + " ORDER BY m.EndDate DESC LIMIT 1");
-                cur.setInt(1, userId);
-                ResultSet rs = cur.executeQuery();
-                if (rs.next()) {
+                if (active != null) {
     %>
         <div class="status-card ok">
             <div>
                 <div class="muted small">Membership</div>
-                <div class="big"><%= esc(rs.getString("TierName")) %></div>
-                <div class="muted">Active until <%= day(rs.getObject("EndDate", LocalDate.class)) %>
-                    (<%= rs.getInt("DaysLeft") %> days left)</div>
+                <div class="big"><%= esc(active.getTierName()) %></div>
+                <div class="muted">Active until <%= day(active.getEndDate()) %>
+                    (<%= active.getDaysLeft() %> days left)</div>
             </div>
             <div class="card-actions">
                 <a class="btn" href="<%= ctx %>/schedule.jsp">Book a class</a>
@@ -70,39 +84,25 @@
         </div>
     <%
                 }
-                rs.close();
-                cur.close();
 
                 // my upcoming bookings 
-                PreparedStatement mine = con.prepareStatement(
-                    "SELECT c.ClassId, c.StartTime, ct.Title, u.Name AS Trainer, c.RoomNumber "
-                    + "  FROM Booking b "
-                    + "  JOIN `Class` c     ON c.ClassId = b.ClassId "
-                    + "  JOIN ClassType ct  ON ct.ClassTypeId = c.ClassTypeId "
-                    + "  JOIN UserAccount u ON u.UserId = c.TrainerId "
-                    + " WHERE b.MemberId = ? AND b.Status = 'BOOKED' AND c.StartTime >= NOW() "
-                    + " ORDER BY c.StartTime");
-                mine.setInt(1, userId);
-                rs = mine.executeQuery();
     %>
         <h2>Your upcoming classes</h2>
         <table>
             <tr><th>When</th><th>Class</th><th>Trainer</th><th>Room</th><th></th></tr>
     <%
-                int n = 0;
-                while (rs.next()) {
-                    n++;
+                for (GymClass c : myClasses) {
     %>
             <tr>
-                <td class="nowrap"><%= when(rs.getObject("StartTime", LocalDateTime.class)) %></td>
-                <td><%= esc(rs.getString("Title")) %></td>
-                <td><%= esc(rs.getString("Trainer")) %></td>
-                <td><%= esc(rs.getString("RoomNumber")) %></td>
+                <td class="nowrap"><%= when(c.getStartTime()) %></td>
+                <td><%= esc(c.getTitle()) %></td>
+                <td><%= esc(c.getTrainerName()) %></td>
+                <td><%= esc(c.getRoomNumber()) %></td>
                 <td class="nowrap">
                     <%-- FR 1.1.6: cancel this booking (cancel.jsp) --%>
                     <form method="post" action="<%= ctx %>/cancel.jsp"
                         onsubmit="return confirm('Cancel your booking for this class?');">
-                        <input type="hidden" name="classId" value="<%= rs.getInt("ClassId") %>">
+                        <input type="hidden" name="classId" value="<%= c.getClassId() %>">
                         <input type="hidden" name="from" value="home">
                         <button class="btn-quiet btn-sm" type="submit">Cancel</button>
                     </form>
@@ -110,7 +110,7 @@
             </tr>
     <%
                 }
-                if (n == 0) {
+                if (myClasses.isEmpty()) {
     %>
             <tr><td colspan="5" class="muted">Nothing booked yet.
                 <a href="<%= ctx %>/schedule.jsp">Browse the schedule</a></td></tr>
@@ -119,50 +119,30 @@
     %>
         </table>
     <%
-                rs.close();
-                mine.close();
             }
 
             // next classes (everyone) 
-            Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery(
-                "SELECT c.StartTime, ct.Title, u.Name AS Trainer, c.RoomNumber, c.Capacity, "
-                + "       (SELECT COUNT(*) FROM Booking b "
-                + "         WHERE b.ClassId = c.ClassId AND b.Status = 'BOOKED') AS Booked "
-                + "  FROM `Class` c "
-                + "  JOIN ClassType ct  ON ct.ClassTypeId = c.ClassTypeId "
-                + "  JOIN UserAccount u ON u.UserId = c.TrainerId "
-                + " WHERE c.StartTime >= NOW() "
-                + " ORDER BY c.StartTime LIMIT 5");
     %>
         <h2>Coming up next</h2>
         <p class="note">The next five classes. <a href="<%= ctx %>/schedule.jsp">See the full schedule</a></p>
         <table>
             <tr><th>When</th><th>Class</th><th>Trainer</th><th>Room</th><th>Spots left</th></tr>
     <%
-            while (rs.next()) {
-                int left = rs.getInt("Capacity") - rs.getInt("Booked");
+            for (GymClass c : nextClasses) {
+                int left = c.getSpotsLeft();
     %>
             <tr>
-                <td class="nowrap"><%= when(rs.getObject("StartTime", LocalDateTime.class)) %></td>
-                <td><%= esc(rs.getString("Title")) %></td>
-                <td><%= esc(rs.getString("Trainer")) %></td>
-                <td><%= esc(rs.getString("RoomNumber")) %></td>
+                <td class="nowrap"><%= when(c.getStartTime()) %></td>
+                <td><%= esc(c.getTitle()) %></td>
+                <td><%= esc(c.getTrainerName()) %></td>
+                <td><%= esc(c.getRoomNumber()) %></td>
                 <% if (left <= 0) { %><td class="full">FULL</td><% } else { %><td class="left"><%= left %></td><% } %>
             </tr>
     <%
             }
     %>
         </table>
-    <%
-            rs.close();
-            stmt.close();
-        } catch (Exception e) {
-            out.println("<p class=\"error\">Could not load gym data: " + esc(e.getMessage()) + "</p>");
-        } finally {
-            close(con);
-        }
-    %>
+    <% } %>
     </main>
     </div>
 
