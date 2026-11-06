@@ -9,7 +9,8 @@
         1. the member has a booking for this class
         2. that booking is still BOOKED (not already cancelled)
         3. the class has not started yet
-    The Booking row is locked with SELECT ... FOR UPDATE until commit.
+    The Booking row is locked with SELECT ... FOR UPDATE until commit
+    (BookingDAO.findByMemberAndClassForUpdate).
 
     The row is NOT deleted. Its Status changes to CANCELLED so the history
     is kept, and the spot opens up again because the schedule only counts
@@ -51,46 +52,23 @@
     try {
         con = getConnection();
         con.setAutoCommit(false);
+        BookingDAO bookings = new BookingDAO(con);
 
         // 1-3. find this member's booking for the class and lock it
-        PreparedStatement bs = con.prepareStatement(
-            "SELECT b.BookingId, b.Status, c.StartTime, ct.Title "
-            + "  FROM Booking b "
-            + "  JOIN `Class` c    ON c.ClassId = b.ClassId "
-            + "  JOIN ClassType ct ON ct.ClassTypeId = c.ClassTypeId "
-            + " WHERE b.MemberId = ? AND b.ClassId = ? FOR UPDATE");
-        bs.setInt(1, userId);
-        bs.setObject(2, classId); 
-        ResultSet rs = bs.executeQuery();
-
-        int bookingId = 0;
-        String title = null;
-        LocalDateTime start = null;
-        if (!rs.next()) {
+        Booking booking = classId == null ? null : bookings.findByMemberAndClassForUpdate(userId, classId);
+        if (booking == null) {
             error = "You don't have a booking for that class.";
-        } else {
-            bookingId = rs.getInt("BookingId");
-            title = rs.getString("Title");
-            start = rs.getObject("StartTime", LocalDateTime.class);
-            if ("CANCELLED".equals(rs.getString("Status"))) {
-                error = "Your booking for " + title + " is already cancelled.";
-            } else if (!start.isAfter(LocalDateTime.now())) {
-                error = title + " has already started, so it can't be cancelled.";
-            }
+        } else if (booking.isCancelled()) {
+            error = "Your booking for " + booking.getClassTitle() + " is already cancelled.";
+        } else if (!booking.getClassStart().isAfter(LocalDateTime.now())) {
+            error = booking.getClassTitle() + " has already started, so it can't be cancelled.";
         }
-        rs.close();
-        bs.close();
 
         // all checks passed: mark the booking cancelled (keep the row)
         if (error == null) {
-            PreparedStatement up = con.prepareStatement(
-                "UPDATE Booking SET Status = 'CANCELLED' WHERE BookingId = ? AND MemberId = ?");
-            up.setInt(1, bookingId);
-            up.setInt(2, userId);
-            up.executeUpdate();
-            up.close();
+            bookings.cancel(booking.getBookingId(), userId);
             con.commit();
-            cancelled = "Your booking for " + title + " on " + when(start)
+            cancelled = "Your booking for " + booking.getClassTitle() + " on " + when(booking.getClassStart())
                 + " is cancelled. The spot is open for other members.";
         } else {
             con.rollback();
