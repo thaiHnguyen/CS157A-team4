@@ -18,6 +18,25 @@ The MySQL password no longer lives in `common.jspf`. Each teammate keeps it in t
 
 Why `WEB-INF` and not the repo root: Tomcat runs a copy of the `webapp` folder, so a `.env` at the repo root would not be deployed. Files in `WEB-INF` are deployed with the app and can never be opened from the browser.
 
+## Data access (DAO pattern)
+SQL lives in Java classes, not in the JSPs.
+
+- `fittrack/src/main/java/fittrack/model/`: plain classes for one row of data (`UserAccount`, `GymClass`, `Booking`, ...).
+- `fittrack/src/main/java/fittrack/dao/`: one DAO per table. Each DAO is created with an open `Connection`
+  (`new BookingDAO(con)`) and only runs SQL. It never opens, commits, or closes the connection.
+- The JSP still opens the connection with `getConnection()` from `common.jspf`, decides when to
+  `commit()` / `rollback()`, and renders the HTML. That keeps transactions such as booking a class
+  (`SELECT ... FOR UPDATE`, then `INSERT`) in one place.
+
+### Compile the Java code before you publish/run the serverse
+- **Eclipse:** nothing to do. Eclipse compiles `src/main/java` into `WEB-INF/classes` for you.
+
+- **VS Code (Community Server Connector):** the exploded deployment does not compile Java, so run the build script from the `fittrack` folder after any change to a `.java` file, then Publish Server (Full):
+    + Windows: `build.cmd` (or double-click it)
+    + Mac/Linux: `./build.sh`
+
+- The script compiles into `src/main/webapp/WEB-INF/classes/`, which git ignores. It uses `JAVA_HOME` if set, otherwise `javac` on your PATH. Changing only JSPs does not need a rebuild.
+
 ## Repository Structure
 
 ```text
@@ -28,6 +47,10 @@ CS157AProject/
 │   ├── 02_fittrack_schema.sql    tables only
 │   └── 03_seed.sql               sample data only
 └── fittrack/                     the web project
+    ├── build.cmd / build.sh      compile src/main/java for VS Code (see above)
+    ├── src/main/java/fittrack/
+    │   ├── model/                one class per row type
+    │   └── dao/                  one DAO per table, all the SQL lives here
     └── src/main/webapp/
         ├── index.jsp             public landing page
         ├── login.jsp             FR 1.1.1 sign in (members, trainers, staff)

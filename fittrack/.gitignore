@@ -5,3 +5,6 @@ Servers/
 # Local database settings (each teammate has their own; never commit)
 .env
 !.env.example
+
+# Compiled DAO/model classes (build.cmd / build.sh output)
+src/main/webapp/WEB-INF/classes/

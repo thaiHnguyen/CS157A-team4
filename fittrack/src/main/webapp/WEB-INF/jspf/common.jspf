@@ -14,6 +14,8 @@
 --%>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.sql.*, java.math.BigDecimal, java.time.*, java.time.format.DateTimeFormatter, java.util.*, java.security.*, java.nio.charset.StandardCharsets" %>
+<%-- DAO layer: models and DAOs in src/main/java/fittrack (compile with build.cmd / build.sh in VS Code) --%>
+<%@ page import="fittrack.model.*, fittrack.dao.*" %>
 <%!
     // ---- MySQL settings ----
     // Read from WEB-INF/.env so nobody has to edit this file or commit a
