@@ -5,11 +5,10 @@ import fittrack.model.Membership;
 import java.sql.*;
 import java.time.LocalDate;
 
-// All SQL for the Membership table. Runs on the caller's Connection
 public class MembershipDAO {
     /**
-     * "Active" = Status ACTIVE and today between StartDate and EndDate.
-     * alias is the table alias with its dot ("m.") or "" for none.
+     * "Active" = Status ACTIVE and today between StartDate and EndDate
+     * alias is the table alias with its dot ("m.") or "" for none
      */
     private static String activeToday(String alias) {
         return alias + "Status = 'ACTIVE' AND CURDATE() BETWEEN "
@@ -22,7 +21,7 @@ public class MembershipDAO {
         this.con = con;
     }
 
-    // True if the member has a membership that is active today. 
+    // True if the member has a membership that is active today
     public boolean hasActive(int memberId) throws SQLException {
         try (PreparedStatement ps = con.prepareStatement(
                 "SELECT 1 FROM Membership WHERE MemberId = ? AND " + activeToday(""))) {
