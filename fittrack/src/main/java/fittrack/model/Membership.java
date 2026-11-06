@@ -15,25 +15,25 @@ public class Membership {
     private String status;              // ACTIVE, EXPIRED, or CANCELLED
     private int daysLeft;               // DATEDIFF(EndDate, CURDATE())
 
-    public int getMembershipId() { 
+    public int getMembershipId(){ 
         return membershipId; 
     }
     public void setMembershipId(int v){ 
         membershipId = v; 
     }
-    public int getMemberId() {
+    public int getMemberId(){ 
         return memberId; 
     }
     public void setMemberId(int v){ 
         memberId = v; 
     }
-    public String getTierName() {
+    public String getTierName(){ 
         return tierName; 
     }
     public void setTierName(String v){ 
         tierName = v; 
     }
-    public LocalDate getStartDate() { 
+    public LocalDate getStartDate(){ 
         return startDate; 
     }
     public void setStartDate(LocalDate v) { 
@@ -42,16 +42,16 @@ public class Membership {
     public LocalDate getEndDate() { 
         return endDate; 
     }
-    public void setEndDate(LocalDate v) { 
+    public void setEndDate(LocalDate v){ 
         endDate = v; 
     }
     public String getStatus() { 
         return status; 
     }
-    public void setStatus(String v){ 
+    public void setStatus(String v) { 
         status = v; 
     }
-    public int getDaysLeft() { 
+    public int getDaysLeft(){ 
         return daysLeft; 
     }
     public void setDaysLeft(int v){ 

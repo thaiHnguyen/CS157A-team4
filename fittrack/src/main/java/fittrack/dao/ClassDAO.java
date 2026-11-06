@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-// All SQL for the `Class` table. Runs on the caller's Connection.
 public class ClassDAO {
     /**
      * Shared by every class listing: the class, its type title, the trainer's
@@ -34,7 +33,7 @@ public class ClassDAO {
     /**
      * The class with its title and capacity, locked (SELECT ... FOR UPDATE)
      * until the caller commits, so two members cannot both take the last
-     * spot. Returns null if there is no such class. Needs autocommit off
+     * spot. Returns null if there is no such class
      */
     public GymClass findByIdForUpdate(int classId) throws SQLException {
         try (PreparedStatement ps = con.prepareStatement(
@@ -86,7 +85,7 @@ public class ClassDAO {
      * @param timeOfDay "morning" (before 12), "afternoon" (12-5pm), "evening" (after 5pm), or null
      */
     public List<GymClass> search(int viewerId, LocalDate onDate, String timeOfDay,
-                                 Integer trainerId, Integer classTypeId) throws SQLException {
+                                    Integer trainerId, Integer classTypeId) throws SQLException {
         StringBuilder sql = new StringBuilder(LISTING_COLUMNS
             + "     , (SELECT mb.Status FROM Booking mb "
             + "         WHERE mb.ClassId = c.ClassId AND mb.MemberId = ?) AS MyStatus "
