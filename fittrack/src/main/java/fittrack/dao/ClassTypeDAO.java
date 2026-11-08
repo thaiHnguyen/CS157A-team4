@@ -19,7 +19,7 @@ public class ClassTypeDAO {
         List<ClassType> list = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(
                 "SELECT ClassTypeId, Title FROM ClassType ORDER BY Title");
-            ResultSet rs = ps.executeQuery()) {
+        ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(new ClassType(rs.getInt("ClassTypeId"), rs.getString("Title")));
             }

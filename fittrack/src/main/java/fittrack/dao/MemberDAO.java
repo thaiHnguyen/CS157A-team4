@@ -12,6 +12,20 @@ public class MemberDAO {
         this.con = con;
     }
 
+    // Locks this member's Member row (SELECT ... FOR UPDATE) until the caller
+    // commits or rolls back, so two renewals by the same member run one after
+    // the other instead of both picking the same start date. Call it first in
+    // the transaction. Returns false if there is no such member. Needs autocommit off
+    public boolean lockById(int userId) throws SQLException {
+        try (PreparedStatement ps = con.prepareStatement(
+                "SELECT UserId FROM Member WHERE UserId = ? FOR UPDATE")) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
     // The Member row for this user, or null (trainers and staff have none)
     public Member findById(int userId) throws SQLException {
         try (PreparedStatement ps = con.prepareStatement(
