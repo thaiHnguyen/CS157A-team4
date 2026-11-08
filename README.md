@@ -57,6 +57,7 @@ CS157AProject/
         ├── register.jsp          FR 1.1.1 member sign-up
         ├── home.jsp              dashboard after sign-in
         ├── profile.jsp           FR 1.1.2 update profile
+        ├── membership.jsp        FR 1.1.3 view, buy, and renew a membership
         ├── schedule.jsp          FR 1.1.4 browse classes with filters
         ├── book.jsp              FR 1.1.5 book a class (no page, redirects back)
         ├── cancel.jsp            FR 1.1.6 cancel a booking (no page, redirects back)
