@@ -271,6 +271,27 @@ tr:last-child td { border-bottom: 0; }
 .status-card.none { border-left-color: var(--full); }
 .status-card .facts { margin: 0; }
 .status-card .big { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+
+/* ---------- membership page (FR 1.1.3) ---------- */
+
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    background: #eceee9;
+    color: var(--muted);
+}
+.badge.active    { background: #e6f0ec; color: var(--green-d); }
+.badge.upcoming  { background: #e8eef6; color: #2c4f7c; }
+.badge.cancelled { background: #f7eae6; color: var(--full); }
+
+table.pick td:first-child { width: 36px; }
+.form-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0 16px; margin-top: 18px; }
+.form-row > div { min-width: 160px; }
+.form-row .btn { margin-bottom: 16px; }
 .card-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
 @media (max-width: 640px) {
