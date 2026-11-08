@@ -197,7 +197,7 @@ INSERT INTO UserAccount (UserId, Email, PasswordHash, Role, Name, Phone, DateOfB
     (13, 'cara.silva@example.com',         'demo123', 'MEMBER',  'Cara Silva',       '669-555-0110', '2000-06-27'),
     (14, 'priya.raman@example.com',        'demo123', 'MEMBER',  'Priya Raman',      '408-555-0142', '2004-02-19'),
     (15, 'marcus.bell@example.com',        'demo123', 'MEMBER',  'Marcus Bell',      '650-555-0123', '1985-08-09'),
-    (16, 'thai.nguyenexpired@example.com', 'demo123', 'MEMBER',  'Elena Vasquez',    '408-555-0168', '1993-12-30'),
+    (16, 'thai.nguyenexpired@example.com', 'demo123', 'MEMBER',  'Thai Nguyen Expired', '408-555-0168', '1993-12-30'),    
     (17, 'daniel.kim@example.com',         'demo123', 'MEMBER',  'Daniel Kim',       '669-555-0134', '1999-03-05'),
     (18, 'sofia.rossi@example.com',        'demo123', 'MEMBER',  'Sofia Rossi',      '650-555-0189', '1996-07-14'),
     (19, 'omar.haddad@example.com',        'demo123', 'MEMBER',  'Omar Haddad',      '408-555-0191', '1955-11-02'),
@@ -303,7 +303,7 @@ INSERT INTO Membership (MembershipId, MemberId, TierId, StartDate, EndDate, Stat
     (12, 18,  4, DATE_SUB(CURDATE(), INTERVAL  30 DAY), DATE_ADD(CURDATE(), INTERVAL  60 DAY), 'ACTIVE', 23);
 
 -- Payments (weak entity). One row per monthly charge; PaymentNo restarts
--- at 1 for each membership. Amount matches the tier's Fee
+-- at 1 for each membership. Amount matches the tier's Fee.
 INSERT INTO Payment (MembershipId, PaymentNo, Amount, PayDate, Method) VALUES
     ( 1, 1,  49.00, DATE_SUB(NOW(), INTERVAL  40 DAY), 'CARD'),
     ( 1, 2,  49.00, DATE_SUB(NOW(), INTERVAL  10 DAY), 'CARD'),
@@ -359,8 +359,10 @@ INSERT INTO `Class` (ClassId, ClassTypeId, TrainerId, RoomNumber, StartTime, Cap
     (15,  2,  2, 'Cycle',    DATE_ADD(DATE(NOW()), INTERVAL 138 HOUR), 20),
     (16,  1,  1, 'Studio A', DATE_ADD(DATE(NOW()), INTERVAL 150 HOUR), 12);
 
+-- ---------------------------------------------------------------------
 -- Bookings. Only members with an active membership book upcoming classes.
 -- Class 5 has one CANCELLED row, which proves spots left ignores it.
+-- ---------------------------------------------------------------------
 
 -- Bookings for the past classes, made four days ago
 INSERT INTO Booking (MemberId, ClassId, BookedAt, Status) VALUES

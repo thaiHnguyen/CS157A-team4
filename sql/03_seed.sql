@@ -43,7 +43,7 @@ INSERT INTO UserAccount (UserId, Email, PasswordHash, Role, Name, Phone, DateOfB
     (13, 'cara.silva@example.com',         'demo123', 'MEMBER',  'Cara Silva',       '669-555-0110', '2000-06-27'),
     (14, 'priya.raman@example.com',        'demo123', 'MEMBER',  'Priya Raman',      '408-555-0142', '2004-02-19'),
     (15, 'marcus.bell@example.com',        'demo123', 'MEMBER',  'Marcus Bell',      '650-555-0123', '1985-08-09'),
-    (16, 'thai.nguyenexpired@example.com', 'demo123', 'MEMBER',  'Elena Vasquez',    '408-555-0168', '1993-12-30'),
+    (16, 'thai.nguyenexpired@example.com', 'demo123', 'MEMBER',  'Thai Nguyen Expired', '408-555-0168', '1993-12-30'),
     (17, 'daniel.kim@example.com',         'demo123', 'MEMBER',  'Daniel Kim',       '669-555-0134', '1999-03-05'),
     (18, 'sofia.rossi@example.com',        'demo123', 'MEMBER',  'Sofia Rossi',      '650-555-0189', '1996-07-14'),
     (19, 'omar.haddad@example.com',        'demo123', 'MEMBER',  'Omar Haddad',      '408-555-0191', '1955-11-02'),
