@@ -9,7 +9,7 @@
 
 USE fittrack;
 
--- CLEAR. TRUNCATE also resets AUTO_INCREMENT, so the IDs below stay fixed.
+-- CLEAR. TRUNCATE also resets AUTO_INCREMENT, so the IDs below stay fixed
 SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE Attendance;
 TRUNCATE TABLE Booking;
@@ -24,9 +24,9 @@ TRUNCATE TABLE Staff;
 TRUNCATE TABLE UserAccount;
 SET FOREIGN_KEY_CHECKS = 1;
 
--- Accounts: UserId 1-10 are trainers, 11-20 are members, 21-30 are staff.
+-- Accounts: UserId 1-10 are trainers, 11-20 are members, 21-30 are staff
 -- Every demo account's password is demo123. The plain text below is
--- replaced with a salted hash by the UPDATE right after this INSERT.
+-- replaced with a salted hash by the UPDATE right after this INSERT
 INSERT INTO UserAccount (UserId, Email, PasswordHash, Role, Name, Phone, DateOfBirth) VALUES
     ( 1, 'john.doe@fittrack.test',         'demo123', 'TRAINER', 'John Doe',         '408-555-0101', '1988-02-14'),
     ( 2, 'jane.doe@fittrack.test',         'demo123', 'TRAINER', 'Jane Doe',         '408-555-0102', '1990-09-03'),
@@ -43,7 +43,7 @@ INSERT INTO UserAccount (UserId, Email, PasswordHash, Role, Name, Phone, DateOfB
     (13, 'cara.silva@example.com',         'demo123', 'MEMBER',  'Cara Silva',       '669-555-0110', '2000-06-27'),
     (14, 'priya.raman@example.com',        'demo123', 'MEMBER',  'Priya Raman',      '408-555-0142', '2004-02-19'),
     (15, 'marcus.bell@example.com',        'demo123', 'MEMBER',  'Marcus Bell',      '650-555-0123', '1985-08-09'),
-    (16, 'elena.vasquez@example.com',      'demo123', 'MEMBER',  'Elena Vasquez',    '408-555-0168', '1993-12-30'),
+    (16, 'thai.nguyenexpired@example.com', 'demo123', 'MEMBER',  'Elena Vasquez',    '408-555-0168', '1993-12-30'),
     (17, 'daniel.kim@example.com',         'demo123', 'MEMBER',  'Daniel Kim',       '669-555-0134', '1999-03-05'),
     (18, 'sofia.rossi@example.com',        'demo123', 'MEMBER',  'Sofia Rossi',      '650-555-0189', '1996-07-14'),
     (19, 'omar.haddad@example.com',        'demo123', 'MEMBER',  'Omar Haddad',      '408-555-0191', '1955-11-02'),
@@ -62,14 +62,13 @@ INSERT INTO UserAccount (UserId, Email, PasswordHash, Role, Name, Phone, DateOfB
 -- Hash the demo passwords. Format: salt$hash, where the salt is 16 hex
 -- characters and hash = SHA-256(salt + password). register.jsp and
 -- login.jsp use the same format (see WEB-INF/jspf/common.jspf).
--- The WHERE clause keeps MySQL Workbench's safe-update mode happy.
 UPDATE UserAccount
     SET PasswordHash = CONCAT(LEFT(SHA2(Email, 256), 16), '$',
                                 SHA2(CONCAT(LEFT(SHA2(Email, 256), 16), PasswordHash), 256))
     WHERE UserId BETWEEN 1 AND 30;
 
 -- Staff: UserId 21-30. Inserted before Trainer because Trainer.AddedBy
--- references Staff.
+-- references Staff
 INSERT INTO Staff (UserId, JobTitle) VALUES
     (21, 'General Manager'),
     (22, 'Fitness Director'),
@@ -122,11 +121,10 @@ INSERT INTO MembershipTier (TierId, TierName, TierLevel, Fee, Description) VALUE
     ( 9, 'Platinum',      5, 109.00, 'Unlimited classes plus 2 personal training sessions a month.'),
     (10, 'Elite Athlete', 6, 149.00, 'Platinum plus recovery room and nutrition coaching.');
 
--- ---------------------------------------------------------------------
 -- Memberships. Dates are relative to today so statuses stay correct.
 -- MemberId and UpdatedBy are UserIds (members 11-20, staff 21-30).
 -- Cara (13) renewed after her Basic expired; Sofia (18) cancelled Gold and
--- moved to Basic; Elena (16) has only an expired membership, so she has
+-- moved to Basic; Elena (16, login thai.nguyenexpired@example.com) has only an expired membership, so she has
 -- no upcoming bookings.
 
 -- UpdatedBy: the staff member who last changed the membership. NULL means
@@ -136,7 +134,6 @@ INSERT INTO MembershipTier (TierId, TierName, TierLevel, Fee, Description) VALUE
 --   front desk (24, 25) verified Priya's student ID and Omar's senior rate;
 --   Corporate Accounts (26) set up Linh's employer-billed plan;
 --   Member Services (29) updated Cara's renewal.
--- ---------------------------------------------------------------------
 
 INSERT INTO Membership (MembershipId, MemberId, TierId, StartDate, EndDate, Status, UpdatedBy) VALUES
     ( 1, 11,  5, DATE_SUB(CURDATE(), INTERVAL  40 DAY), DATE_ADD(CURDATE(), INTERVAL 325 DAY), 'ACTIVE', NULL),
@@ -188,9 +185,9 @@ INSERT INTO ClassType (ClassTypeId, Title, Description) VALUES
     (10, 'Rowing Intervals',        'Erg intervals for aerobic power.');
 
 -- Hours are counted from midnight today: -42 = two days ago 6am,
--- -6 = yesterday 6pm, 30 = tomorrow 6am, 42 = tomorrow 6pm, and so on.
--- Classes 1-4 are in the past so attendance can point at them.
--- Class 9 has capacity 3 and three bookings, so it shows as FULL.
+-- -6 = yesterday 6pm, 30 = tomorrow 6am, 42 = tomorrow 6pm, and so on
+-- Classes 1-4 are in the past so attendance can point at them
+-- Class 9 has capacity 3 and three bookings, so it shows as FULL
 INSERT INTO `Class` (ClassId, ClassTypeId, TrainerId, RoomNumber, StartTime, Capacity) VALUES
     ( 1,  1,  1, 'Studio A', DATE_ADD(DATE(NOW()), INTERVAL -42 HOUR), 12),
     ( 2,  2,  2, 'Cycle',    DATE_ADD(DATE(NOW()), INTERVAL -30 HOUR), 20),
@@ -209,8 +206,8 @@ INSERT INTO `Class` (ClassId, ClassTypeId, TrainerId, RoomNumber, StartTime, Cap
     (15,  2,  2, 'Cycle',    DATE_ADD(DATE(NOW()), INTERVAL 138 HOUR), 20),
     (16,  1,  1, 'Studio A', DATE_ADD(DATE(NOW()), INTERVAL 150 HOUR), 12);
 
--- Bookings. Only members with an active membership book upcoming classes.
--- Class 5 has one CANCELLED row, which proves spots left ignores it.
+-- Bookings. Only members with an active membership book upcoming classes
+-- Class 5 has one CANCELLED row, which proves spots left ignores it
 
 -- Bookings for the past classes, made four days ago
 INSERT INTO Booking (MemberId, ClassId, BookedAt, Status) VALUES
@@ -241,7 +238,7 @@ INSERT INTO Booking (MemberId, ClassId, Status) VALUES
 
 -- Attendance
 -- Class check-ins: members who booked a past class and showed up, checked
--- in 10 minutes before it started. Marcus (15) booked class 1 but no-showed.
+-- in 10 minutes before it started. Marcus (15) booked class 1 but no-showed
 INSERT INTO Attendance (MemberId, ClassId, CheckInTime)
 SELECT b.MemberId, b.ClassId, DATE_SUB(c.StartTime, INTERVAL 10 MINUTE)
     FROM Booking b
@@ -263,7 +260,7 @@ INSERT INTO Attendance (MemberId, ClassId, CheckInTime) VALUES
     (13, NULL, DATE_SUB(NOW(), INTERVAL  4 HOUR)),
     (19, NULL, DATE_SUB(NOW(), INTERVAL  2 HOUR));
 
--- Check: all eleven tables, each should show 10 or more rows.
+-- Check: all eleven tables, each should show 10 or more rows
 SELECT 'UserAccount' AS TableName, COUNT(*) AS RowsLoaded FROM UserAccount
 UNION ALL SELECT 'Member',          COUNT(*) FROM Member
 UNION ALL SELECT 'Trainer',         COUNT(*) FROM Trainer

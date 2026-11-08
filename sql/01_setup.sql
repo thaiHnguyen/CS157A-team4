@@ -25,13 +25,10 @@ DROP DATABASE IF EXISTS fittrack;
 CREATE DATABASE fittrack CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE fittrack;
 
--- ---------------------------------------------------------------------
 -- Accounts and people: UserAccount ISA Member | Trainer | Staff
 -- (total, disjoint). Shared attributes live on UserAccount. Each subclass
 -- inherits UserId as its key: UserId is both its PRIMARY KEY and a FOREIGN
 -- KEY to UserAccount (ISA)
--- ---------------------------------------------------------------------
-
 CREATE TABLE UserAccount (
     UserId        INT AUTO_INCREMENT PRIMARY KEY,
     Email         VARCHAR(120) NOT NULL,
@@ -86,8 +83,8 @@ CREATE TABLE MembershipTier (
 
 -- Holds (Member, exactly one), Of tier (MembershipTier, exactly one), and
 -- Updated by (Staff, at most one). UpdatedBy is NULL when no staff member
--- has changed the membership, e.g. a member bought or renewed it online.
--- MemberId holds the member's UserId; UpdatedBy holds a staff UserId.
+-- has changed the membership, e.g. a member bought or renewed it online
+-- MemberId holds the member's UserId; UpdatedBy holds a staff UserId
 CREATE TABLE Membership (
     MembershipId  INT AUTO_INCREMENT PRIMARY KEY,
     MemberId      INT NOT NULL,
@@ -151,7 +148,7 @@ CREATE TABLE `Class` (
 -- Makes (Member, exactly one) and Reserves (Class, exactly one)
 -- MemberId holds the member's UserId.
 -- Capacity rule (BOOKED rows <= Class.Capacity) is checked by the app
--- before INSERT, because a CHECK cannot count rows in another table.
+-- before INSERT, because a CHECK cannot count rows in another table
 CREATE TABLE Booking (
     BookingId     INT AUTO_INCREMENT PRIMARY KEY,
     MemberId      INT NOT NULL,
@@ -166,7 +163,7 @@ CREATE TABLE Booking (
     CONSTRAINT uq_member_class UNIQUE (MemberId, ClassId)
 );
 
--- Checks in (Member, exactly one) and For (Class, at most one).
+-- Checks in (Member, exactly one) and For (Class, at most one)
 -- ClassId is NULL for a plain gym visit.
 CREATE TABLE Attendance (
     AttendanceId  INT AUTO_INCREMENT PRIMARY KEY,
@@ -182,8 +179,8 @@ CREATE TABLE Attendance (
 CREATE INDEX idx_class_start ON `Class` (StartTime);
 CREATE INDEX idx_membership_status ON Membership (Status, EndDate);
 
--- Accounts: UserId 1-10 are trainers, 11-20 are members, 21-30 are staff.
--- Every account: demo123 (hashed by the UPDATE right after this insert).
+-- Accounts: UserId 1-10 are trainers, 11-20 are members, 21-30 are staff
+-- Every account: demo123 (hashed by the UPDATE right after this insert)
 INSERT INTO UserAccount (UserId, Email, PasswordHash, Role, Name, Phone, DateOfBirth) VALUES
     ( 1, 'john.doe@fittrack.test',         'demo123', 'TRAINER', 'John Doe',         '408-555-0101', '1988-02-14'),
     ( 2, 'jane.doe@fittrack.test',         'demo123', 'TRAINER', 'Jane Doe',         '408-555-0102', '1990-09-03'),
@@ -200,7 +197,7 @@ INSERT INTO UserAccount (UserId, Email, PasswordHash, Role, Name, Phone, DateOfB
     (13, 'cara.silva@example.com',         'demo123', 'MEMBER',  'Cara Silva',       '669-555-0110', '2000-06-27'),
     (14, 'priya.raman@example.com',        'demo123', 'MEMBER',  'Priya Raman',      '408-555-0142', '2004-02-19'),
     (15, 'marcus.bell@example.com',        'demo123', 'MEMBER',  'Marcus Bell',      '650-555-0123', '1985-08-09'),
-    (16, 'elena.vasquez@example.com',      'demo123', 'MEMBER',  'Elena Vasquez',    '408-555-0168', '1993-12-30'),
+    (16, 'thai.nguyenexpired@example.com', 'demo123', 'MEMBER',  'Elena Vasquez',    '408-555-0168', '1993-12-30'),
     (17, 'daniel.kim@example.com',         'demo123', 'MEMBER',  'Daniel Kim',       '669-555-0134', '1999-03-05'),
     (18, 'sofia.rossi@example.com',        'demo123', 'MEMBER',  'Sofia Rossi',      '650-555-0189', '1996-07-14'),
     (19, 'omar.haddad@example.com',        'demo123', 'MEMBER',  'Omar Haddad',      '408-555-0191', '1955-11-02'),
@@ -219,14 +216,14 @@ INSERT INTO UserAccount (UserId, Email, PasswordHash, Role, Name, Phone, DateOfB
 -- Hash the demo passwords. Format: salt$hash, where the salt is 16 hex
 -- characters and hash = SHA-256(salt + password). register.jsp and
 -- login.jsp use the same format (see WEB-INF/jspf/common.jspf).
--- The WHERE clause keeps MySQL Workbench's safe-update mode happy.
+-- The WHERE clause keeps MySQL Workbench's safe-update mode happy
 UPDATE UserAccount
     SET PasswordHash = CONCAT(LEFT(SHA2(Email, 256), 16), '$',
                                 SHA2(CONCAT(LEFT(SHA2(Email, 256), 16), PasswordHash), 256))
     WHERE UserId BETWEEN 1 AND 30;
 
 -- Staff: UserId 21-30. Inserted before Trainer because Trainer.AddedBy
--- references Staff.
+-- references Staff
 INSERT INTO Staff (UserId, JobTitle) VALUES
     (21, 'General Manager'),
     (22, 'Fitness Director'),
@@ -266,9 +263,7 @@ INSERT INTO Member (UserId, EmergencyPhoneNumber) VALUES
     (19, '408-555-0192'),
     (20, '669-555-0147');
 
--- ---------------------------------------------------------------------
 -- Membership tiers. Fee is the monthly fee.
--- ---------------------------------------------------------------------
 
 INSERT INTO MembershipTier (TierId, TierName, TierLevel, Fee, Description) VALUES
     ( 1, 'Off-Peak',      1,  24.00, 'Gym floor weekdays 10am-4pm, up to 4 classes a month.'),
@@ -283,12 +278,12 @@ INSERT INTO MembershipTier (TierId, TierName, TierLevel, Fee, Description) VALUE
     (10, 'Elite Athlete', 6, 149.00, 'Platinum plus recovery room and nutrition coaching.');
 
 -- Memberships. Dates are relative to today so statuses stay correct.
--- MemberId and UpdatedBy are UserIds (members 11-20, staff 21-30).
+-- MemberId and UpdatedBy are UserIds (members 11-20, staff 21-30)
 -- Cara (13) renewed after her Basic expired; Sofia (18) cancelled Gold and
--- moved to Basic; Elena (16) has only an expired membership, so she has
+-- moved to Basic; Elena (16, login thai.nguyenexpired@example.com) has only an expired membership, so she has
 -- no upcoming bookings.
 -- UpdatedBy: the staff member who last changed the membership. NULL means
--- the member bought or renewed it online with no staff involvement.
+-- the member bought or renewed it online with no staff involvement
 --   Membership Manager (23) processed Sofia's cancellation and tier change;
 --   front desk (24, 25) verified Priya's student ID and Omar's senior rate;
 --   Corporate Accounts (26) set up Linh's employer-billed plan;
@@ -308,7 +303,7 @@ INSERT INTO Membership (MembershipId, MemberId, TierId, StartDate, EndDate, Stat
     (12, 18,  4, DATE_SUB(CURDATE(), INTERVAL  30 DAY), DATE_ADD(CURDATE(), INTERVAL  60 DAY), 'ACTIVE', 23);
 
 -- Payments (weak entity). One row per monthly charge; PaymentNo restarts
--- at 1 for each membership. Amount matches the tier's Fee.
+-- at 1 for each membership. Amount matches the tier's Fee
 INSERT INTO Payment (MembershipId, PaymentNo, Amount, PayDate, Method) VALUES
     ( 1, 1,  49.00, DATE_SUB(NOW(), INTERVAL  40 DAY), 'CARD'),
     ( 1, 2,  49.00, DATE_SUB(NOW(), INTERVAL  10 DAY), 'CARD'),
@@ -364,10 +359,8 @@ INSERT INTO `Class` (ClassId, ClassTypeId, TrainerId, RoomNumber, StartTime, Cap
     (15,  2,  2, 'Cycle',    DATE_ADD(DATE(NOW()), INTERVAL 138 HOUR), 20),
     (16,  1,  1, 'Studio A', DATE_ADD(DATE(NOW()), INTERVAL 150 HOUR), 12);
 
--- ---------------------------------------------------------------------
 -- Bookings. Only members with an active membership book upcoming classes.
 -- Class 5 has one CANCELLED row, which proves spots left ignores it.
--- ---------------------------------------------------------------------
 
 -- Bookings for the past classes, made four days ago
 INSERT INTO Booking (MemberId, ClassId, BookedAt, Status) VALUES
