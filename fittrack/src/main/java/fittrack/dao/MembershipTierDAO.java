@@ -21,8 +21,7 @@ public class MembershipTierDAO {
         List<MembershipTier> list = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(
                 "SELECT " + COLUMNS + " FROM MembershipTier ORDER BY TierLevel, Fee, TierName");
-                
-        ResultSet rs = ps.executeQuery()) {
+            ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(map(rs));
             }
