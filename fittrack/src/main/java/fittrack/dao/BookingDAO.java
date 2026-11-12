@@ -1,9 +1,12 @@
 package fittrack.dao;
 
 import fittrack.model.Booking;
+import fittrack.model.RosterEntry;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * All SQL for the Booking table. Runs on the caller's Connection.
@@ -98,6 +101,33 @@ public class BookingDAO {
             ps.setInt(2, memberId);
             ps.executeUpdate();
         }
+    }
+    
+    // Members with a BOOKED spot in this class, only if this trainer leads it (FR 1.2.1)
+    public List<RosterEntry> findRoster(int trainerId, int classId) throws SQLException {
+        List<RosterEntry> out = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(
+                "SELECT u.UserId, u.Name, u.Email, u.Phone, b.BookedAt "
+                + "  FROM Booking b "
+                + "  JOIN `Class` c     ON c.ClassId = b.ClassId "
+                + "  JOIN UserAccount u ON u.UserId  = b.MemberId "
+                + " WHERE c.TrainerId = ? AND b.ClassId = ? AND b.Status = 'BOOKED' "
+                + " ORDER BY u.Name")) {
+            ps.setInt(1, trainerId);
+            ps.setInt(2, classId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    RosterEntry r = new RosterEntry();
+                    r.setMemberId(rs.getInt("UserId"));
+                    r.setName(rs.getString("Name"));
+                    r.setEmail(rs.getString("Email"));
+                    r.setPhone(rs.getString("Phone"));
+                    r.setBookedAt(rs.getObject("BookedAt", LocalDateTime.class));
+                    out.add(r);
+                }
+            }
+        }
+        return out;
     }
 
     private Booking find(String sql, int memberId, int classId) throws SQLException {
