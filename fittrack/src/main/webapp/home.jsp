@@ -65,7 +65,8 @@
                     (<%= active.getDaysLeft() %> days left)</div>
             </div>
             <div class="card-actions">
-                <a class="btn" href="<%= ctx %>/schedule.jsp">Book a class</a>
+                <a class="btn" href="<%= ctx %>/checkin.jsp">Check in</a>
+                <a class="btn-quiet" href="<%= ctx %>/schedule.jsp">Book a class</a>
                 <a class="btn-quiet" href="<%= ctx %>/membership.jsp">Renew</a>
             </div>
         </div>

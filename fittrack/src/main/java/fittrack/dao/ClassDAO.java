@@ -12,7 +12,7 @@ public class ClassDAO {
     /**
      * Shared by every class listing: the class, its type title, the trainer's
      * name, and the live count of BOOKED rows. A spot opens again as soon as
-     * a booking is CANCELLED, because only BOOKED rows are counted.
+     * a booking is CANCELLED, because only BOOKED rows are counted
      */
     private static final String LISTING_COLUMNS =
         "SELECT c.ClassId, c.StartTime, ct.Title, u.Name AS Trainer, c.RoomNumber, c.Capacity, "
@@ -80,7 +80,7 @@ public class ClassDAO {
      * Upcoming classes for the schedule page. Every filter is optional: null
      * (or an unknown timeOfDay) means "any", and each one that is set adds an
      * AND to the WHERE. Each class also carries viewerId's own booking status
-     * (GymClass.getMyStatus: BOOKED, CANCELLED, or null).
+     * (GymClass.getMyStatus: BOOKED, CANCELLED, or null)
      *
      * @param timeOfDay "morning" (before 12), "afternoon" (12-5pm), "evening" (after 5pm), or null
      */
@@ -124,7 +124,49 @@ public class ClassDAO {
         }
     }
 
+    // FR 1.1.7: NOT_YET / OPEN / CLOSED for the check-in window, worked out by
+    // MySQL with NOW(). Using the database clock (not Java's) for every time
+    // rule means the web server and MySQL can never disagree about the time
+    private static final String CHECK_IN_STATE =
+        "CASE WHEN NOW() < c.StartTime - INTERVAL " + GymClass.CHECK_IN_OPENS_MINUTES_BEFORE + " MINUTE THEN 'NOT_YET' "
+        + "     WHEN NOW() > c.StartTime + INTERVAL " + GymClass.CHECK_IN_CLOSES_MINUTES_AFTER + " MINUTE THEN 'CLOSED' "
+        + "     ELSE 'OPEN' END";
+
+    // FR 1.1.7: the check-in state (NOT_YET, OPEN, CLOSED) of one class, or null if there is no such class
+    public String findCheckInState(int classId) throws SQLException {
+        try (PreparedStatement ps = con.prepareStatement(
+                "SELECT " + CHECK_IN_STATE + " FROM `Class` c WHERE c.ClassId = ?")) {
+            ps.setInt(1, classId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getString(1) : null;
+            }
+        }
+    }
+
+    // FR 1.1.7: today's classes this member holds a BOOKED spot in, earliest
+    // first, each with the time they checked in for it (null if not yet) and
+    // whether check-in is open now
+    public List<GymClass> findBookedTodayBy(int memberId) throws SQLException {
+        try (PreparedStatement ps = con.prepareStatement(
+                LISTING_COLUMNS
+                + "     , (SELECT MIN(a.CheckInTime) FROM Attendance a "
+                + "         WHERE a.ClassId = c.ClassId AND a.MemberId = mine.MemberId) AS CheckedInAt, "
+                + CHECK_IN_STATE + " AS CheckInState "
+                + LISTING_FROM
+                + "  JOIN Booking mine ON mine.ClassId = c.ClassId "
+                + " WHERE mine.MemberId = ? AND mine.Status = 'BOOKED' "
+                + "   AND c.StartTime >= CURDATE() AND c.StartTime < CURDATE() + INTERVAL 1 DAY "
+                + " ORDER BY c.StartTime")) {
+            ps.setInt(1, memberId);
+            return list(ps, false, true);
+        }
+    }
+
     private static List<GymClass> list(PreparedStatement ps, boolean withMyStatus) throws SQLException {
+        return list(ps, withMyStatus, false);
+    }
+
+    private static List<GymClass> list(PreparedStatement ps, boolean withMyStatus, boolean withCheckIn) throws SQLException {
         List<GymClass> list = new ArrayList<>();
         try (ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
@@ -137,6 +179,12 @@ public class ClassDAO {
                 c.setCapacity(rs.getInt("Capacity"));
                 c.setBooked(rs.getInt("Booked"));
                 if (withMyStatus) c.setMyStatus(rs.getString("MyStatus"));
+
+                if (withCheckIn) {
+                    c.setCheckedInAt(rs.getObject("CheckedInAt", LocalDateTime.class));
+                    c.setCheckInState(rs.getString("CheckInState"));
+                }
+
                 list.add(c);
             }
         }
