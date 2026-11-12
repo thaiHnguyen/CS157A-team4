@@ -23,10 +23,6 @@ SQL lives in Java classes, not in the JSPs.
 
 - `fittrack/src/main/java/fittrack/model/`: plain classes for one row of data (`UserAccount`, `GymClass`, `Booking`, ...).
 - `fittrack/src/main/java/fittrack/dao/`: one DAO per table. Each DAO is created with an open `Connection`
-  (`new BookingDAO(con)`) and only runs SQL. It never opens, commits, or closes the connection.
-- The JSP still opens the connection with `getConnection()` from `common.jspf`, decides when to
-  `commit()` / `rollback()`, and renders the HTML. That keeps transactions such as booking a class
-  (`SELECT ... FOR UPDATE`, then `INSERT`) in one place.
 
 ### Compile the Java code before you publish/run the serverse
 - **Eclipse:** nothing to do. Eclipse compiles `src/main/java` into `WEB-INF/classes` for you.
@@ -58,6 +54,7 @@ CS157AProject/
         ├── home.jsp              dashboard after sign-in
         ├── profile.jsp           FR 1.1.2 update profile
         ├── membership.jsp        FR 1.1.3 view, buy, and renew a membership
+        ├── checkin.jsp           FR 1.1.7 check in (gym visit or a booked class) + FR 1.1.8 history
         ├── schedule.jsp          FR 1.1.4 browse classes with filters
         ├── book.jsp              FR 1.1.5 book a class (no page, redirects back)
         ├── cancel.jsp            FR 1.1.6 cancel a booking (no page, redirects back)
@@ -74,6 +71,8 @@ CS157AProject/
 
 # After you pull this branch
 - Re-run sql/01_setup.sql once. Old databases still have plain-text passwords and nobody will be able to log in.
+
+- run sql/04_checkin_demo in Workbench for example data of checkin classes
 
 - Set your MySQL password in `WEB-INF/.env` (see "Set your MySQL password" below).
 
