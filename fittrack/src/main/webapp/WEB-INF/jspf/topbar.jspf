@@ -17,6 +17,7 @@
                 <a href="<%= ctx %>/schedule.jsp" class="<%= here.equals("/schedule.jsp") ? "on" : "" %>">Schedule</a>
                 <% if (isMember) { %>
                 <a href="<%= ctx %>/membership.jsp" class="<%= here.equals("/membership.jsp") ? "on" : "" %>">Membership</a>
+                <a href="<%= ctx %>/checkin.jsp" class="<%= here.equals("/checkin.jsp") ? "on" : "" %>">Check in</a>
                 <% } %>
                 <a href="<%= ctx %>/profile.jsp"  class="<%= here.equals("/profile.jsp") ? "on" : "" %>">Profile</a>
                 <%-- Shows user info--%>
