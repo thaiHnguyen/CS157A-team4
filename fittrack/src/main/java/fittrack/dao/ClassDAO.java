@@ -75,6 +75,18 @@ public class ClassDAO {
             return list(ps, false);
         }
     }
+    
+    // Classes this trainer leads, from today on (FR 1.2.1)
+    public List<GymClass> findLedBy(int trainerId) throws SQLException {
+        try (PreparedStatement ps = con.prepareStatement(
+                LISTING_COLUMNS + LISTING_FROM
+                + " WHERE c.TrainerId = ? AND c.StartTime >= CURDATE() "
+                + " ORDER BY c.StartTime")) {
+            ps.setInt(1, trainerId);
+            return list(ps, false);
+        }
+    }
+    
 
     /**
      * Upcoming classes for the schedule page. Every filter is optional: null
